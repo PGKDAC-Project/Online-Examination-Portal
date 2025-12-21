@@ -1,0 +1,58 @@
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.course-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 1.25rem;
+  border: 1px solid #ddd;
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.status {
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.status.active {
+  background: #e6f4ea;
+  color: #137333;
+}
+
+.status.completed {
+  background: #e8eaed;
+  color: #5f6368;
+}
+
+.syllabus-btn {
+  margin-top: 1rem;
+  width: 100%;
+  background: #f1f3f4;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.syllabus-content {
+  margin-top: 1rem;
+}
+
+.module {
+  margin-bottom: 0.75rem;
+}
+
+.module ul {
+  margin-left: 1rem;
+}
