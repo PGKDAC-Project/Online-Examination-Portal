@@ -8,7 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 createRoot(document.getElementById('root')).render(
     <React.StrictMode>
     <ErrorBoundary>
-    <div className='container'>
+    <>
         <App />
         <ToastContainer
                 position="top-right"
@@ -21,7 +21,7 @@ createRoot(document.getElementById('root')).render(
                 draggable
                 pauseOnHover
       />
-    </div>
+    </>
     </ErrorBoundary>
     </React.StrictMode>
 )

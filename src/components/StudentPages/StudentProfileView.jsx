@@ -36,8 +36,6 @@ const StudentProfileView = () => {
                 }));
             };
             reader.readAsDataURL(file); // Read the file as a data URL
-
-            console.log('Selected file:', file.name, file.type, file.size);
             // In a real application, you would send this 'file' object
             // to a server using a FormData object and an API call (e.g., Axios, fetch).
             // Example: uploadProfilePhoto(file);

@@ -114,6 +114,7 @@ function QuestionBankManagement() {
                         <li>Single Choice (MCQ)</li>
                         <li>Multiple Choice (Multiple correct)</li>
                         <li>True / False</li>
+                        <li>Matching</li>
                         <li>Numeric (optional)</li>
                     </ul>
                 </div>

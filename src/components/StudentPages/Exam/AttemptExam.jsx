@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import QuestionNavigator from "./QuestionNavigator";
 import { useExamSecurity } from "./useExamSecurity";
 import { useFullscreenEnforcement } from "./useFullscreenEnforcement";
 import { mockQuestionBank } from "./mockQuestionBank";
+import ReviewAnswers from "./ReviewAnswers";
 import "./AttemptExam.css";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 const AttemptExam = ({ duration = 60 }) => {
   const questions = mockQuestionBank;
 
@@ -13,28 +13,32 @@ const AttemptExam = ({ duration = 60 }) => {
   const [answers, setAnswers] = useState({});
   const [review, setReview] = useState([]);
   const [timeLeft, setTimeLeft] = useState(duration * 60);
+  const [isReviewing, setIsReviewing] = useState(false);
 
   /* ================= SUBMIT LOGIC ================= */
-const navigate = useNavigate();
-const submittedRef = useRef(false);
+  const navigate = useNavigate();
+  const submittedRef = useRef(false);
 
-const submitExam = useCallback(() => {
-  if (submittedRef.current) return; // prevents double submit
-  submittedRef.current = true;
-  toast.success("Exam submitted");
-  // TODO later:
-  navigate("/student/exams");
-  }, []);
+  const submitExam = useCallback(() => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    toast.success("Exam submitted");
+    navigate("/student/exams");
+  }, [navigate]);
+
+  const handleReviewSubmit = () => {
+    setIsReviewing(true);
+  };
 
   const autoSubmit = useCallback(() => {
-    alert("Exam auto-submitted due to violations");
+    toast.warning("Exam auto-submitted due to violations");
     submitExam();
   }, [submitExam]);
 
   /* ================= SECURITY HOOKS ================= */
 
-  const { violations, tabSwitchCount } = useExamSecurity(autoSubmit);
-  const { fullscreenViolations } = useFullscreenEnforcement(autoSubmit);
+  const { violations } = useExamSecurity(autoSubmit);
+  useFullscreenEnforcement(autoSubmit);
 
   
   /* ================= TIMER ================= */
@@ -71,7 +75,23 @@ const submitExam = useCallback(() => {
     return <h3>No questions available</h3>;
   }
 
+  /* ================= REVIEW MODE ================= */
+  if (isReviewing) {
+    return (
+        <ReviewAnswers 
+            questions={questions} 
+            answers={answers} 
+            onSubmit={submitExam} 
+            onBack={() => setIsReviewing(false)} 
+        />
+    );
+  }
+
   const currentQuestion = questions[current];
+
+  if (!currentQuestion) {
+      return <div>Error: Question not found</div>;
+  }
 
   /* ================= ANSWER HANDLING ================= */
 
@@ -82,10 +102,18 @@ const submitExam = useCallback(() => {
         ? prev.filter((o) => o !== option)
         : [...prev, option];
 
-      setAnswers({ ...answers, [current]: updated });
+      setAnswers((prevState) => ({ ...prevState, [current]: updated }));
     } else {
-      setAnswers({ ...answers, [current]: option });
+      setAnswers((prevState) => ({ ...prevState, [current]: option }));
     }
+  };
+
+  const clearCurrentAnswer = () => {
+    setAnswers((prevState) => {
+      const next = { ...prevState };
+      delete next[current];
+      return next;
+    });
   };
 
   /* ================Time Format===============*/
@@ -114,6 +142,9 @@ return (
 
       <div className="exam-timer">
         <span>⏱ Time Left: {formatTime(timeLeft)}</span>
+      </div>
+      <div className="exam-violations">
+        <span>⚠ Violations: {violations}</span>
       </div>
     </header>
 
@@ -185,15 +216,27 @@ return (
 
     {/* FOOTER */}
     <footer className="exam-footer">
-      <button onClick={() => setReview([...review, current])}>
-        Review Later
+      <button onClick={clearCurrentAnswer}>
+        Clear Answer
       </button>
 
-      <button onClick={() => setCurrent((c) => c + 1)}>
+      <button
+        onClick={() =>
+          setReview((prev) => (prev.includes(current) ? prev.filter((i) => i !== current) : [...prev, current]))
+        }
+      >
+        {review.includes(current) ? "Unmark Review" : "Review Later"}
+      </button>
+
+      <button 
+        onClick={() => setCurrent((c) => (c < questions.length - 1 ? c + 1 : c))}
+        disabled={current === questions.length - 1}
+        className={current === questions.length - 1 ? "disabled-btn" : ""}
+      >
         Save & Next
       </button>
 
-      <button className="submit" onClick={submitExam}>
+      <button className="submit" onClick={handleReviewSubmit}>
         Submit Exam
       </button>
     </footer>

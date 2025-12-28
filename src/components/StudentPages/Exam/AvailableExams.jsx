@@ -5,8 +5,8 @@ const exams = [
     examId: "EXAM001",
     title: "Data Structures Midterm",
     course: "CS101",
-    startTime: "2025-03-20T10:00",
-    endTime: "2025-03-20T12:00",
+    startTime: new Date(new Date().setHours(new Date().getHours() - 1)).toISOString(), // Started 1 hour ago
+    endTime: new Date(new Date().setHours(new Date().getHours() + 48)).toISOString(),   // Ends in 48 hours
     duration: 120,
     totalQuestions: 50,
     totalMarks: 100,

@@ -1,15 +1,17 @@
 // src/components/StudentPages/StudentHome.jsx (renamed from StudentHome to StudentOverview for clarity)
 import React from 'react';
-import { Link } from 'react-router'; // Ensure Link is from react-router-dom
+import { Link } from 'react-router-dom'; // Ensure Link is from react-router-dom
 import { FaUserCircle, FaBookOpen, FaClipboardList, FaHistory, FaPollH, FaClock } from 'react-icons/fa';
+import { getCurrentUser } from "../../services/auth/authService";
 // No need to import './studentHome.css' here, it's handled by StudentLayout
 // No need for useState or useEffect for sidebar toggle here
 
 function StudentOverview() { // Renamed for clarity, you can keep StudentHome if you prefer
-    // Placeholder for student's name, ID, etc. - in a real app, this would come from props or context
-    const studentName = "Ankit Singh";
-    const studentId = "S12345";
-    const studentEmail = "Arkkseies967@gmaul.com";
+    const authUser = getCurrentUser();
+
+    const studentName = authUser?.name ?? "Student";
+    const studentId = authUser?.id ? `S${String(authUser.id).padStart(5, "0")}` : "S00000";
+    const studentEmail = authUser?.email ?? "";
     const lastLogin = "2025-10-27 20:30 PM"; // Example last login time
 
     return (

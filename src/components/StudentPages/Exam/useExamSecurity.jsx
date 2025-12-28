@@ -37,6 +37,6 @@ export const useExamSecurity = (onAutoSubmit) => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [onAutoSubmit]);
-
-  return { violations, tabSwitchCount: tabSwitchCount.current };
+ 
+   return { violations, tabSwitchCountRef: tabSwitchCount };
 };

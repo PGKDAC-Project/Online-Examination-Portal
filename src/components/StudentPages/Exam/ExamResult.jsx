@@ -1,4 +1,4 @@
-const ExamResult = ({ score, total, violations, autoSubmitted }) => {
+const ExamResult = ({ score, total, violations, fullscreenViolations = 0, autoSubmitted }) => {
   return (
     <div className="exam-result">
       <h2>Exam Result</h2>

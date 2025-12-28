@@ -1,363 +1,194 @@
-/* General Wrapper Styling */
-html, body {
+/* Reset & Full Height */
+body {
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
-    scrollbar-gutter: stable both-edges;
-    overflow-y: overlay;
-    min-width: 768px;   /* choose your design width */
-    overflow-x: hidden;    /* allow horizontal scroll */
 }
-
 
 #wrapper {
     display: flex;
     width: 100%;
-    min-height: 100%;
-    overflow-x: hidden;
-    position: relative;
-    left: 0;
-}
-:root {
-  --navbar-height: 80px; /* adjust if your navbar is taller */
+    height: 100vh; /* Force full viewport height */
+    overflow: hidden; /* No wrapper scroll */
 }
 
-.navbar {
-  position: sticky;
-  top: 0;
-  z-index: 1100;
-}
-
-
-/* Sidebar Wrapper */
+/* Sidebar */
 #sidebar-wrapper {
-    /*
-     * We'll manage its visibility and position using transforms or margin
-     * instead of fixed for better control when it's toggled,
-     * especially on larger screens.
-     */
-    padding: 0;
-    width: 15rem; /* Fixed width for the sidebar */
-    flex-shrink: 0; /* Prevent sidebar from shrinking */
-    transition: margin-left .25s ease-out; /* Smooth transition for margin */
-    margin-left: 0; /* By default, visible (for larger screens) */
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Subtle shadow */
-    z-index: 1000; /* Ensure it's above other content if ever overlapping */
-    position: relative;
-    left: 0;
-    box-shadow: none;
+    width: 15rem;
+    height: 100%;
+    overflow-y: auto; /* Independent sidebar scroll */
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #0f172a, #020617);
+    border-right: 1px solid rgba(148, 163, 184, 0.15);
+    transition: margin-left .25s ease-out;
+    z-index: 1000;
 }
 
+#sidebar-wrapper .sidebar-heading {
+    color: #f8fafc;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+#sidebar-wrapper .list-group {
+    background: transparent;
+}
+
+#sidebar-wrapper .list-group-item {
+    background: transparent;
+    border-color: rgba(148, 163, 184, 0.12);
+    color: #cbd5e1;
+}
+
+#sidebar-wrapper .list-group-item-action:hover,
+#sidebar-wrapper .list-group-item-action:focus {
+    background: rgba(148, 163, 184, 0.12);
+    color: #ffffff;
+}
 
 /* Page Content Wrapper */
 #page-content-wrapper {
-    flex-grow: 1; /* Allow content to grow and fill available space */
-    min-width: 0; /* Allow content to shrink below its default width if necessary */
-    transition: margin-left .25s ease-out; /* Smooth transition for margin */
-    padding: 0; /* Reset default padding if any, we'll use inner container for content padding */
-    margin-left: 0; /* Default: no additional margin (content takes full width after sidebar) */
-    display: flex; /* Use flexbox for content wrapper to allow its children (navbar, main content) to stack */
-    flex-direction: column; /* Stack children vertically */
+    flex-grow: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Container doesn't scroll */
+    background-color: #f1f5f9;
 }
 
-/* ---------------------------------------------------- */
-/* Sidebar Toggled State */
-/* ---------------------------------------------------- */
-
-/* On Larger Screens (desktop first approach) */
-#wrapper.toggled #sidebar-wrapper {
-    margin-left: -15rem; /* Hide sidebar by moving it out of view */
-}
-
-/* On Larger Screens: Shift page content to cover where sidebar was */
-#wrapper.toggled #page-content-wrapper {
-    margin-left: 0; /* No margin needed when sidebar is hidden */
-}
-
-
-/* ---------------------------------------------------- */
-/* Media Queries for Smaller Screens (Mobile/Tablet) */
-/* ---------------------------------------------------- */
-
-@media (max-width: 480px) {
-    body {
-        overflow-x: hidden;
-    }
-    /* On smaller screens, sidebar should be hidden by default and overlay content */
-    #sidebar-wrapper {
-        position: fixed; /* Make it fixed to overlay */
-        top: var(--navbar-height);
-        left: 0;
-        height: calc(100vh - var(--navbar-height));
-        margin-left: -15rem; /* Hidden by default on small screens */
-        /* position: fixed; */
-        transition: margin-left 0.25s ease-out;
-    }
-
-    /* When toggled, bring sidebar into view */
-    #wrapper.toggled #sidebar-wrapper {
-        margin-left: 0;
-    }
-
-    /* Content wrapper should always take full width on small screens and never be "pushed" */
-    #page-content-wrapper {
-        width: 100%; /* Always take full viewport width */
-        margin-left: 0 !important; /* Override any margin from toggled state */
-        overflow-x: hidden; /* Prevent horizontal scroll from content itself */
-    }
-
-    /*
-     * On small screens, when sidebar is open, we can optionally apply an overlay
-     * or prevent scrolling on the body. For now, the sidebar just overlays.
-     * If you want a semi-transparent overlay, you'd add another element
-     * and toggle its visibility with JavaScript.
-     */
-}
-
-/* ---------------------------------------------------- */
-/* General Styles (Unchanged or minor tweaks) */
-/* ---------------------------------------------------- */
-
-/* Custom styles for sidebar heading and links */
-
-/* Sidebar must be above backdrop */
-#sidebar-wrapper {
-  z-index: 1000;
-}
-
-
-.sidebar-heading {
-    padding: 1.0rem 1.25rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
-}
-
-.list-group-item {
-    border-radius: 0;
-    border: none;
-    padding: .75rem 1.25rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
+/* Navbar */
+.student-navbar {
+    flex-shrink: 0; /* Don't shrink */
+    width: 100%;
+    height: 60px;
     display: flex;
     align-items: center;
+    background: linear-gradient(90deg, #0f172a, #1e293b);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    color: #f8fafc;
+    z-index: 900;
 }
 
-.list-group-item:hover {
-    background-color: rgba(0, 0, 0, 0.2) !important;
-    color: #fff !important;
+.student-navbar .btn.custom-toggle-btn {
+    color: inherit;
+    border: 1px solid rgba(148, 163, 184, 0.25);
 }
 
-/* Custom toggle button for sidebar */
-.custom-toggle-btn {
-    border: none;
-    background-color: transparent;
-    color: #343a40; /* Dark text for light theme */
-    padding: .5rem .75rem;
-    font-size: 1.25rem;
-    cursor: pointer; /* Indicate it's clickable */
-}
-.custom-toggle-btn:hover {
-    color: #007bff; /* Primary color on hover */
+.student-navbar .text-muted {
+    color: rgba(226, 232, 240, 0.85) !important;
 }
 
-/* Content specific padding - make sure your actual page content is wrapped in a div with some padding */
+/* Main Content Area - THIS handles the scrolling */
 .main-content-padding {
-    padding: 1.5rem !important; /* Example class you can add to your <div className="container-fluid p-4"> */
+    flex-grow: 1;
+    overflow-y: auto; 
+    padding: 1.5rem !important;
+    scrollbar-gutter: stable; /* Optional: prevents layout shift */
 }
 
-.student-overview-title {
-    color: #343a40; /* Dark text for titles */
+/* Sidebar Toggled State */
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: -15rem;
 }
 
-/* Card custom styles (optional, Bootstrap cards are usually fine) */
-.card-header.bg-primary {
-    background-color: #007bff !important;
+#wrapper.toggled #page-content-wrapper {
+    margin-left: 0;
 }
-
-/* Theme-specific styles (these should work fine as is, just included for context) */
-
-/* Light Theme (Default, mostly Bootstrap defaults) */
-body.light {
-    background-color: #f8f9fa; /* Light grey background */
-    color: #212529; /* Dark text */
-}
-
-body.light #page-content-wrapper {
-    background-color: #f8f9fa;
-}
-
-body.light #sidebar-wrapper {
-    background-color: #fff;
-    border-right: 1px solid #dee2e6;
-}
-
-body.light .sidebar-heading {
-    color: #212529;
-    border-bottom-color: rgba(0, 0, 0, .1);
-}
-
-body.light .list-group-item.bg-dark { /* Target specific Bootstrap classes if you used them */
-    background-color: #fff !important;
-    color: #212529 !important;
-}
-body.light .list-group-item.bg-dark:hover {
-    background-color: #e9ecef !important; /* Lighter hover */
-    color: #0056b3 !important; /* Darker hover text */
-}
-body.light .list-group-item.active {
-    background-color: #e9ecef !important;
-    color: #007bff !important;
-}
-body.light .navbar {
-    background-color: #fff !important;
-    border-bottom: 1px solid #dee2e6;
-}
-body.light .custom-toggle-btn {
-    color: #343a40;
-}
-body.light .card {
-    background-color: #fff;
-}
-body.light .card-text, body.light h1, body.light h4 {
-    color: #212529;
-}
-body.light .text-muted {
-    color: #6c757d !important;
-}
-
-/* Dark Theme */
-/* StudentHome.css */
-
-/* ... (Previous CSS for resets, wrapper, sidebar, page-content, etc.) ... */
-
 
 /* ---------------------------------------------------- */
-/* Dark Theme (Revised) */
+/* Dark Theme Support */
 /* ---------------------------------------------------- */
 
 body.dark {
-    --dark-bg-primary: #1a1a1a; /* Very dark almost black for main background */
-    --dark-bg-secondary: #2c2c2c; /* Slightly lighter for cards, secondary elements */
-    --dark-bg-tertiary: #3a3a3a; /* Even lighter for hover/active states, navbar */
-    --dark-text-primary: #e0e0e0; /* Off-white for main text */
-    --dark-text-secondary: #a0a0a0; /* Lighter gray for muted text, labels */
-    --dark-border-color: #444444; /* Darker border for separation */
-    --dark-highlight-color: #007bff; /* Keep primary blue, but ensure contrast */
-    --dark-active-bg: #0056b3; /* Darker blue for active states */
-
-    background-color: var(--dark-bg-primary);
-    color: var(--dark-text-primary);
-}
-
-body.dark #page-content-wrapper {
-    background-color: var(--dark-bg-primary); /* Main content background */
-    color: var(--dark-text-primary);
+    color: #e0e0e0;
+    background-color: #121212;
 }
 
 body.dark #sidebar-wrapper {
-    background-color: var(--dark-bg-secondary); /* Sidebar is a bit lighter than main bg for subtle contrast */
-    border-right: 1px solid var(--dark-border-color);
+    background: linear-gradient(180deg, #0f172a, #020617);
+    border-right-color: #333;
+    color: #e0e0e0;
 }
 
-body.dark .sidebar-heading {
-    color: var(--dark-text-primary);
-    border-bottom-color: var(--dark-border-color);
+body.dark #page-content-wrapper {
+    background-color: #0b1220;
+}
+
+body.dark .student-navbar {
+    background: linear-gradient(90deg, #020617, #0f172a);
+    border-bottom-color: rgba(148, 163, 184, 0.18);
+    color: #e2e8f0;
+}
+
+body.dark .card {
+    background-color: #1e1e1e;
+    border-color: #333;
+    color: #e0e0e0;
 }
 
 body.dark .list-group-item {
-    background-color: var(--dark-bg-secondary) !important; /* Match sidebar bg */
-    color: var(--dark-text-primary) !important; /* Readable text */
-}
-body.dark .list-group-item:hover {
-    background-color: var(--dark-bg-tertiary) !important; /* Lighter hover background */
-    color: var(--dark-text-primary) !important;
-}
-body.dark .list-group-item.active {
-    background-color: var(--dark-highlight-color) !important; /* Primary blue for active item */
-    color: #ffffff !important; /* White text on blue background */
-}
-body.dark .list-group-item .fas { /* Icon color in sidebar items */
-    color: var(--dark-text-secondary);
-}
-body.dark .list-group-item.active .fas {
-    color: #ffffff; /* White icon on active blue item */
+    background-color: #1e1e1e;
+    border-color: #333;
+    color: #e0e0e0;
 }
 
-
-body.dark .navbar {
-    background-color: var(--dark-bg-secondary) !important; /* Navbar slightly lighter than main bg */
-    border-bottom: 1px solid var(--dark-border-color);
-}
-body.dark .navbar-nav .nav-link {
-    color: var(--dark-text-primary) !important; /* Ensure nav links are readable */
-}
-body.dark .navbar-nav .nav-link:hover {
-    color: var(--dark-highlight-color) !important; /* Highlight on hover */
+body.dark .list-group-item-action:hover, 
+body.dark .list-group-item-action:focus {
+    background-color: #333;
+    color: #fff;
 }
 
-body.dark .custom-toggle-btn {
-    color: var(--dark-text-primary); /* Hamburger icon color */
-}
-body.dark .custom-toggle-btn:hover {
-    color: var(--dark-highlight-color);
-}
-
-
-body.dark .card {
-    background-color: var(--dark-bg-secondary); /* Cards stand out slightly */
-    color: var(--dark-text-primary);
-    border: 1px solid var(--dark-border-color); /* Add a subtle border */
-}
-body.dark .card-text, body.dark h1, body.dark h4, body.dark .h4 { /* Targeting specific text elements */
-    color: var(--dark-text-primary);
-}
 body.dark .text-muted {
-    color: var(--dark-text-secondary) !important; /* Muted text is lighter gray */
+    color: #a0a0a0 !important;
 }
 
-/* Specific to your profile view */
-body.dark .profile-header {
-    background-color: var(--dark-bg-secondary);
-    border: 1px solid var(--dark-border-color);
-}
-body.dark .profile-header h2,
-body.dark .profile-header p {
-    color: var(--dark-text-primary);
+body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark h5, body.dark h6 {
+    color: #ffffff;
 }
 
-body.dark .profile-section-title { /* For "System-Verified Fields" heading */
-    color: var(--dark-text-primary);
-    background-color: var(--dark-bg-secondary); /* Match card background */
-    border-bottom: 1px solid var(--dark-border-color);
-}
-body.dark .profile-section-title .fas { /* Lock icon */
-    color: var(--dark-text-secondary);
+body.dark input, body.dark select, body.dark textarea {
+    background-color: #2c2c2c;
+    border-color: #444;
+    color: #fff;
 }
 
-body.dark .profile-field-label { /* For "Full Name:", "Student ID:" etc. */
-    color: var(--dark-text-secondary); /* Muted for labels */
-}
-body.dark .profile-field-value { /* For actual values like "John Doe", "S123456789" */
-    color: var(--dark-text-primary); /* Primary text for values */
-}
-body.dark .profile-field-value .fas { /* Icons next to labels */
-    color: var(--dark-text-secondary);
+body.dark .form-control:focus {
+    background-color: #2c2c2c;
+    color: #fff;
+    border-color: #0d6efd;
 }
 
-body.dark .note-text { /* For "These fields are managed by the system..." */
-    color: var(--dark-text-secondary);
-}
-
-/* Dropdown menu specific for Dark Theme */
+/* Dark Theme for Dropdown */
 body.dark .dropdown-menu {
-    background-color: var(--dark-bg-tertiary); /* Slightly lighter background for dropdown */
-    border: 1px solid var(--dark-border-color);
+    background-color: #1e1e1e;
+    border-color: #333;
 }
+
 body.dark .dropdown-item {
-    color: var(--dark-text-primary); /* Readable text for items */
+    color: #e0e0e0;
 }
-body.dark .dropdown-item:hover {
-    background-color: var(--dark-bg-primary); /* Darker on hover */
-    color: var(--dark-text-primary);
+
+body.dark .dropdown-item:hover,
+body.dark .dropdown-item:focus {
+    background-color: #333;
+    color: #fff;
+}
+
+/* ---------------------------------------------------- */
+/* Media Queries for Mobile */
+/* ---------------------------------------------------- */
+
+@media (max-width: 480px) {
+    #sidebar-wrapper {
+        position: fixed;
+        top: 0; /* Cover full height or adjust if navbar is top */
+        left: 0;
+        height: 100%;
+        margin-left: -15rem; /* Hidden by default */
+        z-index: 1200; /* Above everything */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: 0; /* Show sidebar */
+    }
 }

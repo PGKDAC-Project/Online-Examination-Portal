@@ -1,6 +1,7 @@
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { mockExams } from './mockExams.';
+import { mockExams } from './mockExams';
+import { toast } from "react-toastify";
 
 const ExamInstructions = () => {
   const { examId } = useParams();
@@ -13,7 +14,7 @@ const ExamInstructions = () => {
 
   const handleProceed = () => {
     if (password.trim() !== exam.password.trim()) {
-      alert("Incorrect exam password");
+      toast.warning("Incorrect exam password");
       return;
     }
     navigate(`/student/exams/${examId}/details`);

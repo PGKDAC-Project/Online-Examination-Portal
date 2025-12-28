@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockExams } from './mockExams.';
+import { mockExams } from './mockExams';
 
 const ExamDetails = () => {
   const { examId } = useParams();

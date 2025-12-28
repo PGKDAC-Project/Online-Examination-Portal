@@ -7,8 +7,9 @@ import {
     FaFileDownload,
     FaFileCsv
 } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
-function ExamHistory() {
+function InstructorExamHistory() {
 
     // Aggregated past exam data (instructor-only)
     const exams = [
@@ -31,6 +32,10 @@ function ExamHistory() {
             avgScore: 71
         }
     ];
+
+    const handleDownload = (format, title) => {
+        toast.success(`Downloading ${title} report in ${format} format...`);
+    };
 
     return (
         <div>
@@ -76,11 +81,11 @@ function ExamHistory() {
                                     <td>
                                         <div className="btn-group btn-group-sm">
 
-                                            <button className="btn btn-outline-primary">
+                                            <button className="btn btn-outline-primary" onClick={() => handleDownload('PDF', exam.title)}>
                                                 <FaFileDownload />
                                             </button>
 
-                                            <button className="btn btn-outline-success">
+                                            <button className="btn btn-outline-success" onClick={() => handleDownload('CSV', exam.title)}>
                                                 <FaFileCsv />
                                             </button>
 
@@ -102,4 +107,4 @@ function ExamHistory() {
     );
 }
 
-export default ExamHistory;
+export default InstructorExamHistory;

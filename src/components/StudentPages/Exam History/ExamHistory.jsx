@@ -1,5 +1,5 @@
 // src/components/StudentPages/ExamHistory.jsx
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { mockExamHistory } from './mockExamHistory';
 import "./ExamHistory.css";
 const ExamHistory = () => {

@@ -1,5 +1,5 @@
 // src/components/StudentPages/ExamResult.jsx
-import { useParams } from "react-router";
+import { useParams } from "react-router-dom";
 import { mockExamResults } from "./mockExamResult";
 import "./ExamResult.css"
 const StudentExamResult = () => {

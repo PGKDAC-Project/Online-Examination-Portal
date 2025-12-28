@@ -1,46 +1,85 @@
 // src/components/InstructorPages/ExamManagement.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     FaPlusCircle,
     FaEdit,
     FaTrash,
-    FaClone,
     FaEye,
     FaClock,
     FaCheckCircle,
     FaBroadcastTower
 } from 'react-icons/fa';
 
+const STORAGE_KEY = "instructorExamsV1";
+
+const loadExams = () => {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveExams = (exams) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
+};
+
 function ExamManagement() {
 
-    // Placeholder exam data (same dataset powers Student "Available Exams")
-    const exams = [
-        {
-            id: 1,
-            title: "DSA Midterm",
-            course: "CS204",
-            status: "Scheduled",
-            date: "2025-10-30",
-            time: "14:00 - 16:00"
-        },
-        {
-            id: 2,
-            title: "OS Quiz",
-            course: "CS301",
-            status: "Live",
-            date: "2025-10-27",
-            time: "10:00 - 10:30"
-        },
-        {
-            id: 3,
-            title: "DBMS Final",
-            course: "CS210",
-            status: "Completed",
-            date: "2025-10-15",
-            time: "09:00 - 12:00"
-        }
-    ];
+    const [exams, setExams] = useState(() => {
+        const stored = loadExams();
+        if (stored.length) return stored;
+        const seed = [
+            {
+                id: "EXAM-DSA-2025-10-30",
+                title: "DSA Midterm",
+                courseCode: "CS204",
+                status: "Scheduled",
+                date: "2025-10-30",
+                startTime: "14:00",
+                endTime: "16:00",
+                duration: 120,
+                instructions: "Answer all questions.",
+                questionIds: [],
+            },
+            {
+                id: "EXAM-OS-2025-10-27",
+                title: "OS Quiz",
+                courseCode: "CS301",
+                status: "Live",
+                date: "2025-10-27",
+                startTime: "10:00",
+                endTime: "10:30",
+                duration: 30,
+                instructions: "Attempt all questions.",
+                questionIds: [],
+            },
+            {
+                id: "EXAM-DBMS-2025-10-15",
+                title: "DBMS Final",
+                courseCode: "CS210",
+                status: "Completed",
+                date: "2025-10-15",
+                startTime: "09:00",
+                endTime: "12:00",
+                duration: 180,
+                instructions: "No malpractice.",
+                questionIds: [],
+            }
+        ];
+
+        saveExams(seed);
+        return seed;
+    });
+
+    const rows = exams.map((e) => ({
+        ...e,
+        time: e.startTime && e.endTime ? `${e.startTime} - ${e.endTime}` : (e.time || ""),
+    }));
 
     const statusBadge = (status) => {
         switch (status) {
@@ -53,6 +92,14 @@ function ExamManagement() {
             default:
                 return "badge bg-secondary";
         }
+    };
+
+    const deleteExam = (examId) => {
+        const ok = window.confirm("Delete this exam?");
+        if (!ok) return;
+        const next = exams.filter((e) => String(e.id) !== String(examId));
+        setExams(next);
+        saveExams(next);
     };
 
     return (
@@ -87,10 +134,10 @@ function ExamManagement() {
                         </thead>
 
                         <tbody>
-                            {exams.map(exam => (
+                            {rows.map(exam => (
                                 <tr key={exam.id}>
                                     <td>{exam.title}</td>
-                                    <td>{exam.course}</td>
+                                    <td>{exam.courseCode || exam.course}</td>
                                     <td>{exam.date}</td>
                                     <td>{exam.time}</td>
                                     <td>
@@ -117,18 +164,10 @@ function ExamManagement() {
 
                                             {/* Cancel allowed only before start */}
                                             {exam.status === "Scheduled" && (
-                                                <button className="btn btn-outline-danger">
+                                                <button type="button" className="btn btn-outline-danger" onClick={() => deleteExam(exam.id)}>
                                                     <FaTrash />
                                                 </button>
                                             )}
-
-                                            {/* Clone always allowed */}
-                                            <Link
-                                                to={`/instructor/exams/${exam.id}/clone`}
-                                                className="btn btn-outline-secondary"
-                                            >
-                                                <FaClone />
-                                            </Link>
 
                                             {/* View status / monitoring */}
                                             <Link

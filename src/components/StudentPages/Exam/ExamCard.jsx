@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 const ExamCard = ({ exam }) => {
   const navigate = useNavigate();
@@ -6,9 +6,8 @@ const ExamCard = ({ exam }) => {
   const now = new Date();
   const start = new Date(exam.startTime);
   const end = new Date(exam.endTime);
-
-  //just for testing purpose commented
-  const canStart = true;// now >= start && now <= end;
+ 
+  const canStart = now >= start && now <= end;
 
   return (
     <div className="exam-card">

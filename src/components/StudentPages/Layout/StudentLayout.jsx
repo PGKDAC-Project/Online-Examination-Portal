@@ -1,23 +1,39 @@
 // src/components/StudentPages/StudentLayout.jsx
-import React, { useEffect } from 'react';
-import { Link, Outlet, useLocation } from 'react-router'; // Use Link and Outlet from react-router-dom
-import { FaUserCircle, FaBookOpen, FaClipboardList, FaHistory, FaPollH, FaSignOutAlt, FaKey, FaClock, FaBars, FaSun, FaMoon, FaPalette } from 'react-icons/fa';
+import React, { useEffect, useMemo } from 'react';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { FaUserCircle, FaBookOpen, FaClipboardList, FaHistory, FaPollH, FaSignOutAlt, FaKey, FaClock, FaBars, FaSun, FaMoon } from 'react-icons/fa';
+import { toast } from "react-toastify";
+import { clearCurrentUser, getCurrentUser } from "../../../services/auth/authService";
 
 import './StudentHome.css'; // Keep your custom styles
 import { useStudentLayout } from '../../../contexts/StudentLayoutContext';
 
 function StudentLayout() {
     const { isSidebarToggled, toggleSidebar, theme, changeTheme } = useStudentLayout();
-    const location = useLocation(); // To highlight active link
+    const navigate = useNavigate();
 
-    // Placeholder for student's name, ID, etc. - in a real app, this would come from a global state or API
-    const studentName = "Ankit Singh";
+    const authUser = useMemo(() => {
+        return getCurrentUser();
+    }, []);
+
+    useEffect(() => {
+        if (!authUser) {
+            navigate("/login", { replace: true });
+            return;
+        }
+        const role = String(authUser.role ?? "").toLowerCase();
+        if (role !== "student") {
+            navigate("/login", { replace: true });
+        }
+    }, [authUser, navigate]);
+
+    const studentName = authUser?.name ?? "Student";
     const lastLogin = "2025-10-27 20:30 PM"; // Example last login time
 
     const handleLogout = () => {
-        // Implement actual logout logic here (e.g., clear localStorage, call API, redirect)
-        console.log("Student logged out.");
-        // navigate('/login'); // Redirect to login page
+        toast.dismiss();
+        clearCurrentUser();
+        navigate('/login'); // Redirect to login page
     };
 
     return (
@@ -61,29 +77,14 @@ function StudentLayout() {
                     <FaKey className="me-2" /> Change Password
                 </Link>
 
-                {/* Theme Switch */}
-                <div className="list-group-item bg-transparent pt-3">
-                    <div className="dropdown">
-                    <button
-                        className="btn btn-sm dropdown-toggle w-100 d-flex align-items-center justify-content-between"
-                        data-bs-toggle="dropdown"
-                    >
-                        <FaPalette className="me-2" /> Theme
-                    </button>
-                    <ul className="dropdown-menu">
-                        <li>
-                        <button className="dropdown-item" onClick={() => changeTheme('light')}>
-                            <FaSun className="me-2" /> Light
-                        </button>
-                        </li>
-                        <li>
-                        <button className="dropdown-item" onClick={() => changeTheme('dark')}>
-                            <FaMoon className="me-2" /> Dark
-                        </button>
-                        </li>
-                    </ul>
-                    </div>
-                </div>
+                <button
+                    type="button"
+                    className="list-group-item list-group-item-action student-theme-btn"
+                    onClick={() => changeTheme(theme === "light" ? "dark" : "light")}
+                >
+                    {theme === "light" ? <FaMoon className="me-2" /> : <FaSun className="me-2" />}
+                    {theme === "light" ? "Dark Mode" : "Light Mode"}
+                </button>
 
                 {/* Logout */}
                 <button
@@ -97,7 +98,7 @@ function StudentLayout() {
 
             {/* Page Content */}
             <div id="page-content-wrapper">
-                <nav className="navbar border-bottom">
+                <nav className="student-navbar">
                 <div className="w-100 d-flex align-items-center px-3">
                     <button className="btn custom-toggle-btn" onClick={toggleSidebar}>
                     <FaBars />
