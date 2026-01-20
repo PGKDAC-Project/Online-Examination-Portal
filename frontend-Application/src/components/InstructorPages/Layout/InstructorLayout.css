@@ -1,0 +1,160 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+/* ===== WRAPPER ===== */
+.instructor-wrapper {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.instructor-wrapper.light {
+  --instructor-bg: #fdfbf7;
+  --instructor-surface: #ffffff;
+  --instructor-sidebar-bg: linear-gradient(180deg, #4c1d95 0%, #2e1065 100%);
+  --instructor-navbar-bg: linear-gradient(90deg, #ffffff, #f3f4f6);
+  --instructor-navbar-text: #374151;
+  --instructor-navbar-border: #e5e7eb;
+}
+
+.instructor-wrapper.dark {
+  --instructor-bg: #111827;
+  --instructor-surface: #1f2937;
+  --instructor-sidebar-bg: linear-gradient(180deg, #312e81 0%, #1e1b4b 100%);
+  --instructor-navbar-bg: linear-gradient(90deg, #1f2937, #111827);
+  --instructor-navbar-text: #f3f4f6;
+  --instructor-navbar-border: #374151;
+}
+
+/* ===== SIDEBAR ===== */
+.instructor-sidebar {
+  width: 260px;
+  background: var(--instructor-sidebar-bg);
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+
+
+/* COLLAPSED STATE */
+.instructor-wrapper.collapsed .instructor-sidebar {
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  transform: translateX(-100%);
+}
+
+/* SIDEBAR TITLE */
+.instructor-sidebar h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.4rem;
+  color: #f8fafc;
+}
+
+/* NAV LINKS */
+.instructor-sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.instructor-sidebar nav a:hover {
+  background-color: #334155;
+}
+
+.instructor-sidebar a:hover {
+  background-color: #1e293b;
+}
+
+
+/* ===== FOOTER ===== */
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===== THEME DROPDOWN ===== */
+.theme-btn {
+  width: 100%;
+  background: #1e293b;
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-btn:hover {
+  background: #334155;
+}
+
+/* ===== LOGOUT ===== */
+.logout-btn {
+  background: #ef4444;
+  border: none;
+  color: #ffffff;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+}
+
+/* ===== MAIN AREA ===== */
+.instructor-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--instructor-bg);
+  overflow: hidden;
+}
+
+/* ===== NAVBAR ===== */
+.instructor-navbar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.2rem;
+  background: var(--instructor-navbar-bg);
+  border-bottom: 1px solid var(--instructor-navbar-border);
+  color: var(--instructor-navbar-text);
+}
+
+/* HAMBURGER */
+.hamburger {
+  font-size: 1.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--instructor-navbar-text);
+}
+
+/* ===== CONTENT ===== */
+.instructor-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  background: var(--instructor-bg);
+}
+
+body.dark .instructor-content {
+  color: #e5e7eb;
+}
