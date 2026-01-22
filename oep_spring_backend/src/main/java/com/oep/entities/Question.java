@@ -20,6 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -55,11 +56,10 @@ public class Question extends BaseEntity{
 	@JoinColumn(name = "course_id", nullable = false)
 	private Courses course;
 	
-	@ManyToMany(mappedBy = "questions")
-	private Set<Exam> exams = new HashSet<>();
+	@OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+	private Set<ExamQuestions> examQuestions = new HashSet<>();
 	
-	
-	//=======Options collection========================
+	//Options column
 	@ElementCollection
     @CollectionTable(
         name = "question_options",
@@ -68,7 +68,7 @@ public class Question extends BaseEntity{
     @Column(name = "option_text")
     private List<String> options = new ArrayList<>();
 	
-	//==================correct Answer collection======================
+	//Answers column
 	//MCQ, TRUE_FALSE, MSQ
 	@ElementCollection
     @CollectionTable(

@@ -11,24 +11,25 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
 import lombok.Getter;
 import lombok.Setter;
 
 @MappedSuperclass
-@Entity
 @Getter
 @Setter
-public class BaseEntity {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(length = 50)
-	private String id;
-	
-	@CreationTimestamp
-	@Column(name = "creation_Date", length = 15,nullable = false)
-	private LocalDateTime createdOn;
-	
-	@UpdateTimestamp
-	@Column(name = "last_updated", length = 15)
-	private LocalDateTime lastUpdated;
+public abstract class BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @CreationTimestamp
+    @Column(name = "created_on", nullable = false, updatable = false)
+    private LocalDateTime createdOn;
+
+    @UpdateTimestamp
+    @Column(name = "last_updated")
+    private LocalDateTime lastUpdated;
 }
+

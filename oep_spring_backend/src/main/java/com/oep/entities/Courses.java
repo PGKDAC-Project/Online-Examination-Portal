@@ -1,5 +1,8 @@
 package com.oep.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -27,9 +30,13 @@ public class Courses extends BaseEntity{
 	private String description;
 	
 	@ElementCollection
-	@CollectionTable(name = "course_syllabus", joinColumns = @JoinColumn(name = "course_code"))
-	@OrderBy("moduleNumber Asc")
-	private Syllabus syllabus;
+	@CollectionTable(
+	    name = "course_syllabus",
+	    joinColumns = @JoinColumn(name = "course_id")
+	)
+	@OrderBy("moduleNo ASC")
+	private List<Syllabus> syllabus = new ArrayList<>();
+
 	
 	@ManyToOne
 	@JoinColumn(name = "instructor_id")
