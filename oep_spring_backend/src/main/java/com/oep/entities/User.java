@@ -18,7 +18,7 @@ import lombok.Setter;
 @Table(name = "users", indexes = {
 		@Index(name = "idx_user_email", columnList = "email"),
 		@Index(name = "idx_user_role", columnList = "role"),
-		@Index(name = "idx_user_batch", columnList = "batch")
+		@Index(name = "idx_user_batch", columnList = "batch_id")
 })
 @AttributeOverride(name = "id", column = @Column(name = "userId"))
 @Getter
