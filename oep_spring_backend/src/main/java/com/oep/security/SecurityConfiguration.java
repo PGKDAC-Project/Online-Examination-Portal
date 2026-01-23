@@ -43,7 +43,7 @@ public class SecurityConfiguration {
 		// add url based authentication n authorization rules
 		http.authorizeHttpRequests(request ->
 //configure public end points
-		request.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**", "/users/signin", "/forgot-password", 
+		request.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**", "/user/signin", "/forgot-password", 
 				"/users/pwd-encryption").permitAll()
 				.anyRequest().authenticated());
 		return http.build();

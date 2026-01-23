@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.oep.entities.User;
-import com.oep.repository.UserRepository;
+import com.oep.repository.AuthRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class CustomUserDetailsServiceImpl implements UserDetailsService {
-	private final UserRepository userRepository;
+	private final AuthRepository authRepository;
 	
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		log.info("********* in load user ");
-		User user=userRepository.findByEmail(email)
+		User user=authRepository.findByEmail(email)
 				.orElseThrow(() -> new UsernameNotFoundException("User by this email doesn't exist!"));
 		//email verified
 		return new UserPrincipal(user.getId(),

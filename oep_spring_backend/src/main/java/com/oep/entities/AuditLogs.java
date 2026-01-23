@@ -26,9 +26,13 @@ public class AuditLogs extends BaseEntity {
     @Column(name = "service_name", nullable = false)
     private ServiceName serviceName;
 
-    @Column(name = "user_email", length = 150)
+    @Column(name = "user_email", length = 150, nullable = false)
     private String userEmail;
-
+    
+    @Column(name = "user_role", length = 50, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "action", nullable = false)
     private AuditAction action;

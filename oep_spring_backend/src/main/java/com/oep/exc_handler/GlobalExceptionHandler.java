@@ -37,18 +37,21 @@ public class GlobalExceptionHandler {
 		System.out.println("in catch all ");
 //			return ResponseEntity/* .status(HttpStatus.INTERNAL_SERVER_ERROR) */
 //				 .of(Optional.of(new ApiResponse("Failed", e.getMessage())));
+		e.printStackTrace();
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse("Failed", e.getMessage()));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException e) {
 		System.out.println("in catch - ResourceNotFoundException");
+		e.printStackTrace();
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse("Failed", e.getMessage()));
 	}
 
 	@ExceptionHandler(AuthenticationFailedException.class)
 	public ResponseEntity<?> handleAuthenticationFailedException(AuthenticationFailedException e) {
 		System.out.println("in catch - AuthenticationFailedException");
+		e.printStackTrace();
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse("Failed", e.getMessage()));
 	}
 
@@ -58,6 +61,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
 		System.out.println("in catch - MethodArgumentNotValidException");
+		e.printStackTrace();
 		// 1. Get List of rejected fields
 		List<FieldError> list = e.getFieldErrors();
 		// 2. Convert list of FieldErrors -> Map<Key - field name , Value - err mesg>
