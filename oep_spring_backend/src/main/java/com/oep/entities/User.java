@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -23,6 +24,7 @@ import lombok.Setter;
 @AttributeOverride(name = "id", column = @Column(name = "userId"))
 @Getter
 @Setter
+@ToString
 public class User extends BaseEntity {
 	
 	@Column(name = "user_name", length = 100, nullable = false)

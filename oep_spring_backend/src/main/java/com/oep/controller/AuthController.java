@@ -11,6 +11,8 @@ import com.oep.dtos.*;
 import com.oep.security.JwtUtils;
 import com.oep.security.UserPrincipal;
 import com.oep.service.AuthService;
+import com.oep.service.CourseServiceImpl;
+import com.oep.service.EmailService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -25,6 +27,8 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
+
 
     //login
     @PostMapping("/signin")
@@ -41,7 +45,8 @@ public class AuthController {
     @PostMapping("/forgot-password")
     @Operation(description = "Send reset password link")
     public ResponseEntity<ApiResponse> forgotPassword(@RequestBody @Valid ForgotPasswordDto dto) {
-        authService.sendResetPasswordLink(dto.getEmail());
+        System.out.println("Email: "+ dto.getEmail());
+    	authService.sendResetPasswordLink(dto.getEmail());
         return ResponseEntity.ok(new ApiResponse("success", "Reset link has been sent"));
     }
 
@@ -64,4 +69,11 @@ public class AuthController {
 
         return ResponseEntity.ok(new ApiResponse("success", "Password reset successfully"));
     }
+    
+    @GetMapping("/test-mail")
+    public String testMail() {
+        emailService.sendResetPasswordLink("Arkkseies967@gmail.com", "dummy-token-123");
+        return "Mail sent (if config is correct)";
+    }
+
 }

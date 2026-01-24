@@ -1,0 +1,6 @@
+@AdminServiceDotNET_HostAddress = http://localhost:5221
+
+GET {{AdminServiceDotNET_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
