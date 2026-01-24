@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"; 
-import { useLocation, useNavigate, Link } from "react-router-dom";
-import { toast } from 'react-toastify';
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+// Toast removed as per requirement
 import { FaUser, FaLock, FaEnvelope, FaArrowRight } from 'react-icons/fa';
 import './Home.css';
 import { loginWithEmailPassword, requestPasswordReset, resetPassword as resetPasswordService } from "../../services/auth/authService";
@@ -13,6 +13,9 @@ function Login() {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [loading, setLoading] = useState(false);
     const [loginError, setLoginError] = useState("");
+    const [forgotError, setForgotError] = useState("");
+    const [verifyError, setVerifyError] = useState("");
+    const [resetError, setResetError] = useState("");
 
     const [forgotEmail, setForgotEmail] = useState("");
     const [codeInput, setCodeInput] = useState("");
@@ -47,14 +50,18 @@ function Login() {
                 email: formData.email,
                 password: formData.password
             });
-            toast.success(`Welcome, ${authUser.name}!`);
+            // Successful major action: Toast optional, but requirement says "Remove toast notifications for login errors". 
+            // Usually success toast is okay, but "Remove toast notifications for login errors" might imply only errors.
+            // "Toasts may remain ONLY for: Successful major actions". Login IS a major action.
+            // But let's stick to inline or just redirect.
+            // toast.success(`Welcome, ${authUser.name}!`); 
             navigate(routeByRole(authUser.role));
         } catch (err) {
             if (err?.code === "INVALID_CREDENTIALS") {
-                toast.error("Invalid credentials. Please try again.");
+                setLoginError("Invalid email or password");
                 return;
             }
-            toast.error("Login failed. Please try again.");
+            setLoginError("Invalid email or password"); // Generic error for security
         } finally {
             setLoading(false);
         }
@@ -62,46 +69,50 @@ function Login() {
 
     const startForgotPassword = (e) => {
         e.preventDefault();
+        setForgotError("");
         requestPasswordReset({ email: forgotEmail })
             .then(({ code }) => {
                 setGeneratedCode(code);
                 setCodeInput("");
                 setMode("verify");
-                toast.info(`Verification code sent (demo: ${code})`);
+                // toast.info(`Verification code sent (demo: ${code})`); // keep demo code in console or alert if really needed, or just let it pass
+                console.log(`Verification code sent (demo: ${code})`);
             })
             .catch((err) => {
                 if (err?.code === "EMAIL_NOT_FOUND") {
-                    toast.error("Email not found.");
+                    setForgotError("Email not found.");
                     return;
                 }
-                toast.error("Could not send code. Please try again.");
+                setForgotError("Could not send code. Please try again.");
             });
     };
 
     const verifyCode = (e) => {
         e.preventDefault();
+        setVerifyError("");
         if (!generatedCode) {
-            toast.error("Please request a code again.");
+            setVerifyError("Please request a code again.");
             setMode("forgot");
             return;
         }
         if (codeInput.trim() !== generatedCode) {
-            toast.error("Invalid code.");
+            setVerifyError("Invalid code.");
             return;
         }
         setMode("reset");
-        toast.success("Code verified. You can now reset your password.");
+        // toast.success("Code verified. You can now reset your password.");
     };
 
     const submitReset = (e) => {
         e.preventDefault();
+        setResetError("");
         const email = forgotEmail.trim().toLowerCase();
         if (resetPassword.length < 6) {
-            toast.error("Password must be at least 6 characters long.");
+            setResetError("Password must be at least 6 characters long.");
             return;
         }
         if (resetPassword !== resetConfirmPassword) {
-            toast.error("Passwords do not match.");
+            setResetError("Passwords do not match.");
             return;
         }
         resetPasswordService({ email, newPassword: resetPassword });
@@ -110,7 +121,8 @@ function Login() {
         setCodeInput("");
         setResetPassword("");
         setResetConfirmPassword("");
-        toast.success("Password updated. Please login again.");
+        // toast.success("Password updated. Please login again.");
+        setMode("login");
     };
 
     return (
@@ -145,61 +157,62 @@ function Login() {
                     </div>
 
                     {mode === "login" && (
-                    <form onSubmit={handleLogin}>
-                        <div className="form-floating mb-3">
-                            <input
-                                type="email"
-                                className="form-control"
-                                id="email"
-                                name="email"
-                                placeholder="name@example.com"
-                                value={formData.email}
-                                onChange={handleChange}
-                                required
-                            />
-                            <label htmlFor="email"><FaEnvelope className="me-2" />Email Address</label>
-                        </div>
-
-                        <div className="form-floating mb-4">
-                            <input
-                                type="password"
-                                className="form-control"
-                                id="password"
-                                name="password"
-                                placeholder="Password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                required
-                            />
-                            <label htmlFor="password"><FaLock className="me-2" />Password</label>
-                        </div>
-
-                        {loginError && (
-                            <div className="text-danger mb-3 small">
-                                {loginError}
+                        <form onSubmit={handleLogin}>
+                            <div className="form-floating mb-3">
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    id="email"
+                                    name="email"
+                                    placeholder="name@example.com"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label htmlFor="email"><FaEnvelope className="me-2" />Email Address</label>
                             </div>
-                        )}
 
-                        <button 
-                            type="submit" 
-                            className="btn btn-primary btn-lg w-100 mb-3 d-flex align-items-center justify-content-center"
-                            disabled={loading}
-                        >
-                            {loading ? 'Signing In...' : (
-                                <>Sign In <FaArrowRight className="ms-2" /></>
+                            <div className="form-floating mb-4">
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label htmlFor="password"><FaLock className="me-2" />Password</label>
+                            </div>
+
+                            {loginError && (
+                                <div className="text-danger mb-3 small">
+                                    {loginError}
+                                </div>
                             )}
-                        </button>
 
-                        <div className="text-center">
-                            <Link to="/editPassword" style={{ textDecoration: 'none', color: '#64748b' }}>
-                                Forgot Password?
-                            </Link>
-                        </div>
-                    </form>
+                            <button
+                                type="submit"
+                                className="btn btn-primary btn-lg w-100 mb-3 d-flex align-items-center justify-content-center"
+                                disabled={loading}
+                            >
+                                {loading ? 'Signing In...' : (
+                                    <>Sign In <FaArrowRight className="ms-2" /></>
+                                )}
+                            </button>
+
+                            <div className="text-center">
+                                <Link to="/editPassword" style={{ textDecoration: 'none', color: '#64748b' }}>
+                                    Forgot Password?
+                                </Link>
+                            </div>
+                        </form>
                     )}
 
                     {mode === "forgot" && (
                         <form onSubmit={startForgotPassword}>
+                            {forgotError && <div className="text-danger mb-3 small">{forgotError}</div>}
                             <div className="form-floating mb-4">
                                 <input
                                     type="email"
@@ -227,6 +240,7 @@ function Login() {
 
                     {mode === "verify" && (
                         <form onSubmit={verifyCode}>
+                            {verifyError && <div className="text-danger mb-3 small">{verifyError}</div>}
                             <div className="form-floating mb-3">
                                 <input
                                     type="text"
@@ -268,6 +282,7 @@ function Login() {
 
                     {mode === "reset" && (
                         <form onSubmit={submitReset}>
+                            {resetError && <div className="text-danger mb-3 small">{resetError}</div>}
                             <div className="form-floating mb-3">
                                 <input
                                     type="password"

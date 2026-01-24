@@ -22,3 +22,33 @@ export const mockExams = [
   { id: 102, title: "Java Advanced", instructor: "Prof. Gupta", status: "Scheduled", scheduledTime: "2:00 PM - 4:00 PM", activeStudents: 0, malpracticeReports: 0 },
   { id: 103, title: "Database Systems", instructor: "Dr. Rao", status: "Completed", scheduledTime: "Yesterday", activeStudents: 0, malpracticeReports: 5 },
 ];
+
+export const mockBatches = [
+  { id: 1, batchName: "PG-DAC-FEB-2025", startDate: "2025-02-15", endDate: "2025-08-15", createdOn: "2025-01-20T10:00:00" },
+  { id: 2, batchName: "PG-DBDA-FEB-2025", startDate: "2025-02-20", endDate: "2025-08-20", createdOn: "2025-01-21T11:00:00" },
+  { id: 3, batchName: "PG-DESD-FEB-2025", startDate: "2025-02-10", endDate: "2025-08-10", createdOn: "2025-01-22T09:30:00" }
+];
+
+export const mockCourses = [
+  {
+    id: 1,
+    courseCode: "REACT-101",
+    title: "Introduction to React",
+    description: "Learn React basics",
+    instructorDetails: { id: 2, name: "Dr. Sharma", email: "dr.sharma@example.com" },
+    syllabus: [
+      { moduleNo: 1, moduleTitle: "Intro", moduleDescription: "What is React?", estimatedHrs: 2 },
+      { moduleNo: 2, moduleTitle: "Components", moduleDescription: "Functional components", estimatedHrs: 4 }
+    ],
+    status: "Active"
+  },
+  {
+    id: 2,
+    courseCode: "NODE-201",
+    title: "Advanced Node.js",
+    description: "Server side JS",
+    instructorDetails: { id: 2, name: "Dr. Sharma", email: "dr.sharma@example.com" },
+    syllabus: [],
+    status: "Active"
+  }
+];

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { FaShieldAlt, FaChartLine, FaUserGraduate, FaCheckCircle } from 'react-icons/fa';
 import './Home.css';
+import heroImage from '../../assets/hero-image.png';
+import featuresImage from '../../assets/features-collage.png';
 
 function Home() {
     return (
@@ -9,7 +11,7 @@ function Home() {
             <nav className="navbar navbar-expand-lg navbar-dark fixed-top" style={{ backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <div className="container">
                     <Link className="navbar-brand fw-bold d-flex align-items-center" to="/">
-                        <FaUserGraduate className="me-2" style={{ color: '#6366f1' }} /> 
+                        <FaUserGraduate className="me-2" style={{ color: '#6366f1' }} />
                         <span style={{ background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ExamPortal</span>
                     </Link>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -34,7 +36,7 @@ function Home() {
                         <div className="col-lg-6 hero-content">
                             <h1>Secure, Seamless <br /> <span style={{ color: '#6366f1' }}>Online Examinations</span></h1>
                             <p className="lead text-light opacity-75">
-                                Experience the future of assessment with our AI-powered proctoring, 
+                                Experience the future of assessment with our AI-powered proctoring,
                                 real-time analytics, and intuitive interface designed for students and educators.
                             </p>
                             <div className="d-flex gap-3">
@@ -43,11 +45,12 @@ function Home() {
                             </div>
                         </div>
                         <div className="col-lg-6 d-none d-lg-block">
-                            <img 
-                                src="https://img.freepik.com/free-vector/online-test-concept-illustration_114360-5474.jpg" 
-                                alt="Online Exam" 
-                                className="img-fluid floating-animation" 
-                                style={{ filter: 'drop-shadow(0 0 20px rgba(37,99,235,0.3))' }}
+                            <img
+                                src={heroImage}
+                                alt="Online Exam"
+                                className="img-fluid floating-animation"
+                                style={{ filter: 'drop-shadow(0 0 20px rgba(99, 102, 241, 0.3))' }}
+                                loading="lazy"
                             />
                         </div>
                     </div>
@@ -86,7 +89,7 @@ function Home() {
                         <h2 className="fw-bold mb-3">Why Choose ExamPortal?</h2>
                         <p className="text-muted">Built for reliability, security, and scale.</p>
                     </div>
-                    
+
                     <div className="row g-4">
                         <div className="col-md-4">
                             <div className="feature-card">

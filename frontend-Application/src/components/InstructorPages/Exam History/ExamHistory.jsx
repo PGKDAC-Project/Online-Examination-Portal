@@ -8,6 +8,7 @@ import {
     FaFileCsv
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { exportToCSV, exportToPDF } from '../../../utils/exportUtils';
 
 function InstructorExamHistory() {
 
@@ -34,7 +35,23 @@ function InstructorExamHistory() {
     ];
 
     const handleDownload = (format, title) => {
-        toast.success(`Downloading ${title} report in ${format} format...`);
+        const data = exams.map(e => ({
+            "Exam": e.title,
+            "Course": e.course,
+            "Date": e.date,
+            "Attempted": e.attempted,
+            "Passed": e.passed,
+            "Avg Score": e.avgScore
+        }));
+
+        if (format === 'CSV') {
+            exportToCSV(data, `exam_history_${title.replace(/\s+/g, '_')}`);
+            toast.success(`Exported ${title} as CSV`);
+        } else {
+            const columns = ["Exam", "Course", "Date", "Attempted", "Passed", "Avg Score"];
+            exportToPDF(data, columns, `Exam Report: ${title}`, `exam_history_${title.replace(/\s+/g, '_')}`);
+            toast.success(`Exported ${title} as PDF`);
+        }
     };
 
     return (

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { FaArrowLeft, FaUserGraduate } from "react-icons/fa";
 import "./Home.css";
+import aboutBanner from "../../assets/about-banner.png";
 
 function About() {
   return (
@@ -21,8 +22,15 @@ function About() {
         </div>
       </nav>
 
-      <div style={{ paddingTop: 90 }}>
-        <section className="about-section">
+      <div style={{ paddingTop: 70 }}>
+        <img
+          src={aboutBanner}
+          alt="About ExamPortal"
+          className="w-100 object-fit-cover"
+          style={{ height: '350px', objectPosition: 'center' }}
+          loading="lazy"
+        />
+        <section className="about-section pt-5">
           <div className="container">
             <div className="row align-items-start g-4">
               <div className="col-lg-7">

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, Navigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { clearCurrentUser, getCurrentUser } from "../../../services/auth/authService";
 import {
@@ -15,6 +15,7 @@ import {
   FaHistory,
   FaUserCog,
   FaClipboardList,
+  FaBullhorn,
 } from "react-icons/fa";
 
 import { useInstructorLayout } from "../../../contexts/InstructorLayoutContext";
@@ -28,32 +29,32 @@ const InstructorLayout = () => {
     return getCurrentUser();
   }, []);
 
-  useEffect(() => {
-    if (!authUser) {
-      navigate("/login", { replace: true });
-      return;
-    }
-    const role = String(authUser.role ?? "").toLowerCase();
-    if (role !== "instructor") {
-      navigate("/login", { replace: true });
-    }
-  }, [authUser, navigate]);
+  // Strict redirect
+  if (!authUser) {
+    return <Navigate to="/" replace />;
+  }
+
+  const role = String(authUser.role ?? "").toLowerCase();
+  if (role !== "instructor") {
+    return <Navigate to="/" replace />;
+  }
 
   const handleLogout = () => {
-      toast.dismiss();
-      clearCurrentUser();
-      navigate('/login');
+    toast.dismiss();
+    clearCurrentUser();
+    navigate('/login');
   };
 
   return (
     <div className={`instructor-wrapper ${theme} ${sidebarOpen ? "" : "collapsed"}`}>
-      
+
       {/* SIDEBAR */}
       <aside className="instructor-sidebar">
         <h2>Instructor Panel</h2>
 
         <nav>
           <NavLink to="/instructor/home"><FaChartBar /> Overview</NavLink>
+          <NavLink to="/instructor/announcements"><FaBullhorn /> Announcements</NavLink>
           <NavLink to="/instructor/courses"><FaBook /> Manage Courses</NavLink>
           <NavLink to="/instructor/exams"><FaPlus /> Exam Management</NavLink>
           <NavLink to="/instructor/live-exams"><FaUsers /> Live Monitoring</NavLink>

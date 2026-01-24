@@ -47,31 +47,12 @@ const StudentProfileView = () => {
             <h1 className="mb-4">My Profile</h1>
 
             {/* Top Profile Section */}
-            <div className="card shadow-sm mb-4 profile-header text-center py-4">
-                <img
-                    src={student.profilePic} // Use the profilePic from state
-                    alt="Profile"
-                    className="rounded-circle mx-auto mb-3"
-                    style={{ width: '100px', height: '100px', objectFit: 'cover' }} // Added objectFit
-                />
-                <h2 className="mb-1">{student.fullName}</h2>
-                <p className="text-muted">{student.username}</p>
-
-                {/* Hidden file input */}
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }} // Keep it hidden
-                    accept="image/*" // Restrict to image files
-                    onChange={handleFileChange}
-                />
-
-                <button
-                    className="btn btn-primary btn-sm mt-2"
-                    onClick={handleChangePhotoButtonClick} // Trigger the file input click
-                >
-                    <i className="fas fa-camera me-2"></i> Change Photo
-                </button>
+            <div className="card-custom mb-4 profile-header text-center py-4">
+                <div className="rounded-circle bg-primary text-white mx-auto mb-3 d-flex align-items-center justify-content-center" style={{ width: '100px', height: '100px', fontSize: '40px' }}>
+                    {student.fullName.charAt(0)}
+                </div>
+                <h2 className="mb-1 text-gradient fw-bold">{student.fullName}</h2>
+                <p className="text-muted mb-0">{student.username}</p>
             </div>
 
             {/* System-Verified Fields */}
@@ -106,7 +87,7 @@ const StudentProfileView = () => {
                             <p className="lead profile-field-value">{student.username}</p>
                         </div>
                     </div>
-                
+
                 </div>
             </div>
 
