@@ -18,28 +18,29 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Courses extends BaseEntity{
-	
+public class Courses extends BaseEntity {
+
 	@Column(name = "course_code", nullable = false, length = 15)
 	private String courseCode;
-	
+
 	@Column(length = 100, nullable = false)
 	private String title;
-	
+
 	@Column(nullable = false)
 	private String description;
-	
+
 	@ElementCollection
-	@CollectionTable(
-	    name = "course_syllabus",
-	    joinColumns = @JoinColumn(name = "course_id")
-	)
+	@CollectionTable(name = "course_syllabus", joinColumns = @JoinColumn(name = "course_id"))
 	@OrderBy("moduleNo ASC")
 	private List<Syllabus> syllabus = new ArrayList<>();
 
-	
 	@ManyToOne
 	@JoinColumn(name = "instructor_id")
 	private User instructorDetails;
-	
+
+	@ElementCollection
+	@CollectionTable(name = "course_outcomes", joinColumns = @JoinColumn(name = "course_id"))
+	@Column(name = "outcome_text")
+	private List<String> outcomes = new ArrayList<>();
+
 }

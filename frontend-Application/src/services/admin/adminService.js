@@ -1,16 +1,21 @@
-import { axiosClient } from "../axios/axiosClient";
+import axiosClient from "../axios/axiosClient";
 
-export const getSystemLogs = async (params) => {
-  const res = await axiosClient.get("/admin/logs", { params });
-  return res.data;
+export const getSystemLogs = async () => {
+  return await axiosClient.get("/logs");
 };
 
-export const createUser = async (payload) => {
-  const res = await axiosClient.post("/admin/users", payload);
-  return res.data;
+export const getSystemAnalytics = async () => {
+  return await axiosClient.get("/analytics");
 };
 
-export const updateUser = async (id, payload) => {
-  const res = await axiosClient.put(`/admin/users/${id}`, payload);
-  return res.data;
+export const createUser = async (user) => {
+  return await axiosClient.post("/users", user);
+};
+
+export const updateUser = async (id, user) => {
+  return await axiosClient.put(`/users/${id}`, user);
+};
+
+export const deleteUser = async (id) => {
+  return await axiosClient.delete(`/users/${id}`);
 };

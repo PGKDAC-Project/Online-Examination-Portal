@@ -1,24 +1,38 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockExams } from './mockExams';
+import { useEffect, useState } from "react";
+import { getAvailableExams } from "../../../services/student/studentService";
 
 const ExamDetails = () => {
   const { examId } = useParams();
   const navigate = useNavigate();
+  const [exam, setExam] = useState(null);
 
-  const exam = mockExams.find(e => e.examId === examId);
-  if (!exam) return <h3>Invalid Exam</h3>;
-    const startExam = () => {
-    navigate(`/student/exams/${exam.examId}/attempt`);
+  useEffect(() => {
+    const fetchExam = async () => {
+      try {
+        const exams = await getAvailableExams();
+        const found = exams.find(e => String(e.id) === String(examId) || String(e.examId) === String(examId));
+        setExam(found);
+      } catch (err) {
+        console.error(err);
+      }
     };
-//   const startExam = () => {
-//   document.documentElement.requestFullscreen()
-//     .then(() => {
-//       navigate(`/student/exams/${exam.examId}/attempt`);
-//     })
-//     .catch(() => {
-//       alert("Fullscreen permission is required to start the exam.");
-//     });
-// };
+    fetchExam();
+  }, [examId]);
+
+  if (!exam) return <h3>Loading exam details...</h3>;
+  const startExam = () => {
+    navigate(`/student/exams/${exam.examId}/attempt`);
+  };
+  //   const startExam = () => {
+  //   document.documentElement.requestFullscreen()
+  //     .then(() => {
+  //       navigate(`/student/exams/${exam.examId}/attempt`);
+  //     })
+  //     .catch(() => {
+  //       alert("Fullscreen permission is required to start the exam.");
+  //     });
+  // };
 
 
 

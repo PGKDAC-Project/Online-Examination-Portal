@@ -1,12 +1,19 @@
-import { useState, useEffect } from 'react';
-import { FaPlus, FaTrash, FaEdit, FaBook, FaCheck, FaTimes, FaBan } from 'react-icons/fa';
+import { useState, useEffect, useMemo } from 'react';
+import { FaPlus, FaBook, FaCheck, FaTimes, FaBan, FaFileCsv, FaFilePdf, FaSearch } from 'react-icons/fa';
 import { getAllCourses, createCourse, updateCourseStatus } from '../../services/admin/courseService';
 import { getAllInstructors } from '../../services/admin/userService';
+import { exportToCSV, exportToPDF } from '../../utils/exportUtils';
+import { toast } from 'react-toastify';
 
 const CourseGovernance = () => {
   const [courses, setCourses] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [instructorFilter, setInstructorFilter] = useState("All");
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -30,21 +37,56 @@ const CourseGovernance = () => {
         getAllCourses(),
         getAllInstructors()
       ]);
-      setCourses(courseData);
-      setInstructors(instructorData);
+      setCourses(Array.isArray(courseData) ? courseData : []);
+      setInstructors(Array.isArray(instructorData) ? instructorData : []);
     } catch (err) {
       console.error(err);
+      toast.error("Failed to load course data");
     } finally {
       setLoading(false);
     }
+  };
+
+  const filteredCourses = useMemo(() => {
+    return courses.filter(c => {
+      const matchesSearch = (c.title || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.courseCode || "").toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "All" || c.status === statusFilter;
+      const matchesInstructor = instructorFilter === "All" || String(c.instructorDetails?.id) === String(instructorFilter);
+      return matchesSearch && matchesStatus && matchesInstructor;
+    });
+  }, [courses, search, statusFilter, instructorFilter]);
+
+  const handleExportCSV = () => {
+    const data = filteredCourses.map(c => ({
+      "Code": c.courseCode,
+      "Title": c.title,
+      "Instructor": c.instructorDetails?.name || "N/A",
+      "Modules": (c.syllabus || []).length,
+      "Status": c.status
+    }));
+    exportToCSV(data, "course_list");
+  };
+
+  const handleExportPDF = () => {
+    const columns = ["Code", "Title", "Instructor", "Modules", "Status"];
+    const data = filteredCourses.map(c => ({
+      "Code": c.courseCode,
+      "Title": c.title,
+      "Instructor": c.instructorDetails?.name || "N/A",
+      "Modules": (c.syllabus || []).length,
+      "Status": c.status
+    }));
+    exportToPDF(data, columns, "Course List", "course_list");
   };
 
   const handleStatusChange = async (id, newStatus) => {
     try {
       await updateCourseStatus(id, newStatus);
       fetchData(); // Refresh
+      toast.success(`Course status updated to ${newStatus}`);
     } catch (err) {
-      alert("Failed to update status");
+      toast.error("Failed to update status");
     }
   };
 
@@ -112,6 +154,7 @@ const CourseGovernance = () => {
       await createCourse(payload);
       setShowModal(false);
       fetchData();
+      toast.success("Course created successfully");
     } catch (err) {
       setError(err.message || "Failed to create course");
     }
@@ -124,14 +167,54 @@ const CourseGovernance = () => {
           <h2 className="fw-bold text-gradient">Course Governance</h2>
           <p className="text-muted mb-0">Manage courses, syllabus, and instructor assignments.</p>
         </div>
-        <button className="btn btn-primary-custom" onClick={handleCreateOpen}>
-          <FaPlus className="me-2" /> Create New Course
-        </button>
+        <div className="d-flex gap-2">
+          <button className="btn btn-success btn-sm d-flex align-items-center" onClick={handleExportCSV}>
+            <FaFileCsv className="me-2" /> Export CSV
+          </button>
+          <button className="btn btn-danger btn-sm d-flex align-items-center" onClick={handleExportPDF}>
+            <FaFilePdf className="me-2" /> Export PDF
+          </button>
+          <button className="btn btn-primary-custom" onClick={handleCreateOpen}>
+            <FaPlus className="me-2" /> Create New Course
+          </button>
+        </div>
       </div>
 
-      <div className="card-custom p-4">
+      <div className="card-custom p-3 mb-4">
+        <div className="row g-2">
+          <div className="col-md-5">
+            <div className="input-group">
+              <span className="input-group-text"><FaSearch /></span>
+              <input
+                className="form-control"
+                placeholder="Search by Title or Code..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="col-md-3">
+            <select className="form-select" value={instructorFilter} onChange={e => setInstructorFilter(e.target.value)}>
+              <option value="All">All Instructors</option>
+              {instructors.map(inst => (
+                <option key={inst.id} value={inst.id}>{inst.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-4">
+            <select className="form-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+              <option value="All">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Pending">Pending</option>
+              <option value="Suspended">Suspended</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="card-custom p-4 shadow-sm border-0">
         <div className="table-responsive">
-          <table className="table table-hover align-middle">
+          <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
               <tr>
                 <th>Code</th>
@@ -145,10 +228,10 @@ const CourseGovernance = () => {
             <tbody>
               {loading ? (
                 <tr><td colSpan="6" className="text-center p-4">Loading...</td></tr>
-              ) : courses.length === 0 ? (
-                <tr><td colSpan="6" className="text-center p-4">No courses found.</td></tr>
+              ) : filteredCourses.length === 0 ? (
+                <tr><td colSpan="6" className="text-center p-4">No courses found matching filter.</td></tr>
               ) : (
-                courses.map(course => (
+                filteredCourses.map(course => (
                   <tr key={course.id}>
                     <td className="fw-medium">{course.courseCode}</td>
                     <td>

@@ -1,23 +1,42 @@
-import React from 'react';
-import { useParams, useNavigate, Navigate } from 'react-router-dom';
-import { mockLogs, mockUsers } from './mockAdminData';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getUserById } from '../../services/admin/userService';
+import { getSystemLogs } from '../../services/admin/adminService';
 import { FaUser, FaArrowLeft, FaEnvelope, FaIdBadge, FaCalendarAlt } from 'react-icons/fa';
+import { toast } from "react-toastify";
 
 const UserDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const parsedId = Number.parseInt(id ?? '', 10);
-  const foundUser = mockUsers.find(u => u.id === parsedId);
+  const [user, setUser] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!foundUser) return <Navigate to="/admin/users" replace />;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [u, allLogs] = await Promise.all([
+          getUserById(id),
+          getSystemLogs()
+        ]);
 
-  const user = {
-    ...foundUser,
-    email: foundUser.email ?? `${foundUser.name.toLowerCase().replace(' ', '.')}@example.com`,
-    joinDate: '2025-01-15'
-  };
+        setUser(u);
 
-  const logs = mockLogs.filter(l => l.userId === parsedId);
+        // Filter logs for this user (assuming logs contain userId or user email matching)
+        const userLogs = Array.isArray(allLogs) ? allLogs.filter(l => String(l.userId) === String(id) || l.user === u.name) : [];
+        setLogs(userLogs);
+      } catch (err) {
+        toast.error("Failed to load user details");
+        // navigate('/admin/users'); // Optional: stay on page to see error
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
+
+  if (loading) return <div className="p-5 text-center">Loading user details...</div>;
+  if (!user) return <div className="p-5 text-center">User not found</div>;
 
   return (
     <div className="container mt-4">
@@ -98,10 +117,9 @@ const UserDetails = () => {
                       <td>{log.time}</td>
                       <td>{log.action}</td>
                       <td>
-                        <span className={`badge ${
-                          log.status === 'Success' ? 'bg-success' : 
-                          log.status === 'Violation' ? 'bg-danger' : 'bg-warning'
-                        }`}>
+                        <span className={`badge ${log.status === 'Success' ? 'bg-success' :
+                            log.status === 'Violation' ? 'bg-danger' : 'bg-warning'
+                          }`}>
                           {log.status}
                         </span>
                       </td>

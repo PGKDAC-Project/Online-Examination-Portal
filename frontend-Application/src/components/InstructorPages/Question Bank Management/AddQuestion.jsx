@@ -2,23 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FaArrowLeft, FaSave } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-
-const STORAGE_KEY = "instructorQuestionBankV1";
-
-const loadQuestionBank = () => {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-};
-
-const saveQuestionBank = (questions) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(questions));
-};
+import { createQuestion as createQuestionService } from '../../../services/instructor/questionService';
 
 const AddQuestion = () => {
     const navigate = useNavigate();
@@ -108,7 +92,7 @@ const AddQuestion = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const courseCode = (question.course || "").trim();
@@ -129,79 +113,21 @@ const AddQuestion = () => {
             return;
         }
 
-        const type = question.type;
-        const normalizedOptions = (question.options || []).map((o) => (o || "").trim());
-
-        if (type === "single" || type === "multiple") {
-            if (normalizedOptions.length !== 4 || normalizedOptions.some((o) => !o)) {
-                toast.error("Please fill all 4 options.");
-                return;
-            }
-        }
-
-        let correctAnswer = question.correctAnswer;
-
-        if (type === "single") {
-            const idx = Number(correctAnswer);
-            if (!Number.isInteger(idx) || idx < 0 || idx > 3) {
-                toast.error("Select the correct option.");
-                return;
-            }
-        }
-
-        if (type === "multiple") {
-            const indices = Array.isArray(correctAnswer) ? correctAnswer : [];
-            if (indices.length === 0) {
-                toast.error("Select at least one correct option.");
-                return;
-            }
-            if (indices.some((i) => !Number.isInteger(i) || i < 0 || i > 3)) {
-                toast.error("Invalid correct options selected.");
-                return;
-            }
-            correctAnswer = indices;
-        }
-
-        if (type === "truefalse") {
-            if (correctAnswer !== "True" && correctAnswer !== "False") {
-                toast.error("Select True or False as correct answer.");
-                return;
-            }
-        }
-
-        const normalizedPairs = (question.pairs || []).map((p) => ({
-            left: String(p?.left || "").trim(),
-            right: String(p?.right || "").trim(),
-        }));
-
-        if (type === "matching") {
-            if (normalizedPairs.length < 2) {
-                toast.error("Add at least 2 matching pairs.");
-                return;
-            }
-            if (normalizedPairs.some((p) => !p.left || !p.right)) {
-                toast.error("Fill all matching pairs.");
-                return;
-            }
-        }
-
-        const nextQuestion = {
-            id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        const nextQuestionData = {
+            ...question,
             courseCode,
-            type,
             text,
-            options: type === "matching" ? [] : normalizedOptions,
-            correctAnswer,
             difficulty,
             marks,
-            pairs: type === "matching" ? normalizedPairs : undefined,
         };
 
-        const existing = loadQuestionBank();
-        saveQuestionBank([...existing, nextQuestion]);
-
-        toast.success("Question added to bank!");
-        navigate(`/instructor/question-bank/${courseCode}`);
+        try {
+            await createQuestionService(nextQuestionData);
+            toast.success("Question created successfully!");
+            navigate(`/instructor/question-bank/${courseCode}`);
+        } catch (err) {
+            toast.error("Failed to create question: " + err.message);
+        }
     };
 
     return (

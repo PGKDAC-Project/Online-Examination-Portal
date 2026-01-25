@@ -14,18 +14,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.oep.custom_exceptions.AuthenticationFailedException;
 import com.oep.custom_exceptions.ResourceNotFoundException;
 import com.oep.dtos.ApiResponse;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 /*
-						 * = @ControllerAdvice - class level annotation + @ResponseBody implicitly added
-						 * on all exception handling methods. Use @ControllerAdvice - in MVC controller
-						 * Use @RestControllerAdvice - in RESTful web service - Declares a spring bean -
-						 * containing global exc handling advice (GlobalExceptionHandler is giving a
-						 * common advice to all rest controllers - You don't add recurring exc handling
-						 * logic (try-catch) - I will supply it for you ! - Based on interceptor (proxy
-						 * - Middleware - Node) pattern
-						 * 
-						 */
+ * = @ControllerAdvice - class level annotation + @ResponseBody implicitly added
+ * on all exception handling methods. Use @ControllerAdvice - in MVC controller
+ * Use @RestControllerAdvice - in RESTful web service - Declares a spring bean -
+ * containing global exc handling advice (GlobalExceptionHandler is giving a
+ * common advice to all rest controllers - You don't add recurring exc handling
+ * logic (try-catch) - I will supply it for you ! - Based on interceptor (proxy
+ * - Middleware - Node) pattern
+ * 
+ */
 public class GlobalExceptionHandler {
 	/*
 	 * To declare exc handling method - add method level annotation
@@ -34,16 +35,18 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	// @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR )
 	public ResponseEntity<?> handleException(Exception e) {
-		System.out.println("in catch all ");
-//			return ResponseEntity/* .status(HttpStatus.INTERNAL_SERVER_ERROR) */
-//				 .of(Optional.of(new ApiResponse("Failed", e.getMessage())));
+		System.err.println("Global Exception Caught: " + e.getClass().getName() + " - " + e.getMessage());
 		e.printStackTrace();
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse("Failed", e.getMessage()));
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(new ApiResponse("Failed", "An internal error occurred: " + e.getMessage()));
 	}
 
-	
-	
-	
+	@ExceptionHandler(NoResourceFoundException.class)
+	public ResponseEntity<?> handleNoResourceFound(NoResourceFoundException e) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ApiResponse("Failed", "Endpoint not found: " + e.getResourcePath()));
+	}
+
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException e) {
 		System.out.println("in catch - ResourceNotFoundException");
@@ -76,7 +79,8 @@ public class GlobalExceptionHandler {
 		 */
 
 		Map<String, String> map = list.stream()
-				.collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage,(v1,v2) -> v1+" "+v2));
+				.collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage,
+						(v1, v2) -> v1 + " " + v2));
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
 	}
 

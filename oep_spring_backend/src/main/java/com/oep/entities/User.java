@@ -62,7 +62,8 @@ public class User extends BaseEntity {
 	@Column(name = "activation_expiry")
 	private LocalDateTime activationExpiry;
 	
-	@ManyToOne
-	@JoinColumn(name = "batch_id")
-	private Batch batch;
+//	@ManyToOne
+//	@JoinColumn(name = "batch_id")
+	@Column(name = "batch_id")
+	private Long batchId;
 }

@@ -36,7 +36,7 @@ public class AuditLogs extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "action", nullable = false)
     private AuditAction action;
-
+    
     @Column(name = "details", columnDefinition = "json")
     private String details;
 }

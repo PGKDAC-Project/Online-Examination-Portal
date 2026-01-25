@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { getAllBatches, createBatch, updateBatch, deleteBatch } from "../../services/admin/batchService";
+import { toast } from "react-toastify";
 
 const BatchManagement = () => {
     const [batches, setBatches] = useState([]);
@@ -22,9 +23,11 @@ const BatchManagement = () => {
         try {
             setLoading(true);
             const data = await getAllBatches();
-            setBatches(data);
+            // Ensure data is an array
+            setBatches(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error(err);
+            toast.error("Failed to load batches");
         } finally {
             setLoading(false);
         }
@@ -40,7 +43,7 @@ const BatchManagement = () => {
         setFormData({
             id: batch.id,
             batchName: batch.batchName,
-            startDate: batch.startDate,
+            startDate: batch.startDate, // Assuming API returns YYYY-MM compatible string
             endDate: batch.endDate
         });
         setError("");
@@ -51,9 +54,10 @@ const BatchManagement = () => {
         if (window.confirm("Are you sure you want to delete this batch?")) {
             try {
                 await deleteBatch(id);
-                fetchBatches();
+                toast.success("Batch deleted successfully");
+                fetchBatches(); // Refresh list to ensure no stale data
             } catch (err) {
-                alert("Failed to delete batch");
+                toast.error(err.message || "Failed to delete batch");
             }
         }
     };
@@ -61,17 +65,35 @@ const BatchManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        // Basic validation
+        if (!formData.batchName || !formData.startDate || !formData.endDate) {
+            setError("All fields are required.");
+            return;
+        }
+
         try {
             if (formData.id) {
+                // Update existing batch
                 await updateBatch(formData.id, formData);
+                toast.success("Batch updated successfully");
             } else {
+                // Create new batch
                 await createBatch(formData);
+                toast.success("Batch created successfully");
             }
             setShowModal(false);
-            fetchBatches();
+            fetchBatches(); // Strict requirement: Refresh list to show latest state
         } catch (err) {
-            setError(err.message);
+            setError(err.message || "An error occurred");
         }
+    };
+
+    // Helper to determine status
+    const getStatus = (batch) => {
+        if (batch.status) return batch.status;
+        const today = new Date().toISOString().slice(0, 7); // YYYY-MM
+        return batch.endDate >= today ? "Active" : "Completed";
     };
 
     return (
@@ -91,30 +113,38 @@ const BatchManagement = () => {
                                 <th>Batch Name</th>
                                 <th>Start Date</th>
                                 <th>End Date</th>
+                                <th>Status</th>
                                 <th className="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="4" className="text-center p-4">Loading batches...</td></tr>
+                                <tr><td colSpan="5" className="text-center p-4">Loading batches...</td></tr>
                             ) : batches.length === 0 ? (
-                                <tr><td colSpan="4" className="text-center p-4">No batches found.</td></tr>
+                                <tr><td colSpan="5" className="text-center p-4">No batches found.</td></tr>
                             ) : (
                                 batches.map(batch => (
                                     <tr key={batch.id}>
                                         <td className="fw-medium">{batch.batchName}</td>
                                         <td>{batch.startDate}</td>
                                         <td>{batch.endDate}</td>
+                                        <td>
+                                            <span className={`badge ${getStatus(batch) === 'Active' ? 'bg-success' : 'bg-secondary'}`}>
+                                                {getStatus(batch)}
+                                            </span>
+                                        </td>
                                         <td className="text-end">
                                             <button
                                                 className="btn btn-sm btn-outline-primary me-2"
                                                 onClick={() => handleEdit(batch)}
+                                                title="Edit Batch"
                                             >
                                                 <FaEdit />
                                             </button>
                                             <button
                                                 className="btn btn-sm btn-outline-danger"
                                                 onClick={() => handleDelete(batch.id)}
+                                                title="Delete Batch"
                                             >
                                                 <FaTrash />
                                             </button>
@@ -152,26 +182,29 @@ const BatchManagement = () => {
                                             placeholder="e.g. PG-DAC-FEB-2025"
                                         />
                                     </div>
-                                    <div className="mb-3">
-                                        <label className="form-label fw-medium">Start Date</label>
-                                        <input
-                                            type="date"
-                                            className="form-control form-control-custom"
-                                            value={formData.startDate}
-                                            onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                                            required
-                                        />
+                                    <div className="row">
+                                        <div className="col-md-6 mb-3">
+                                            <label className="form-label fw-medium">Start Date (Month/Year)</label>
+                                            <input
+                                                type="month"
+                                                className="form-control form-control-custom"
+                                                value={formData.startDate}
+                                                onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="col-md-6 mb-3">
+                                            <label className="form-label fw-medium">End Date (Month/Year)</label>
+                                            <input
+                                                type="month"
+                                                className="form-control form-control-custom"
+                                                value={formData.endDate}
+                                                onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="mb-3">
-                                        <label className="form-label fw-medium">End Date</label>
-                                        <input
-                                            type="date"
-                                            className="form-control form-control-custom"
-                                            value={formData.endDate}
-                                            onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                                            required
-                                        />
-                                    </div>
+
                                     <div className="d-flex justify-content-end gap-2 mt-4">
                                         <button
                                             type="button"

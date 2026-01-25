@@ -1,5 +1,5 @@
-// src/components/InstructorPages/LiveExamMonitoring.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import {
     FaUsers,
     FaUserCheck,
@@ -9,44 +9,37 @@ import {
     FaClock,
     FaCheckCircle
 } from 'react-icons/fa';
+import { getLiveExamStats, getLiveStudentStatuses } from '../../../services/instructor/instructorService';
+import { toast } from 'react-toastify';
 
 function LiveExamMonitoring() {
+    const { examId } = useParams();
+    const [stats, setStats] = useState({ attempted: 0, active: 0, autoSubmitted: 0 });
+    const [violationsCount, setViolationsCount] = useState({ tabSwitches: 0, fullscreenExits: 0 });
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Placeholder live exam data (real-time via WebSocket later)
-    const examStats = {
-        attempted: 120,
-        active: 96,
-        autoSubmitted: 8
-    };
+    useEffect(() => {
+        const fetchLiveData = async () => {
+            try {
+                const [statsData, studentsData] = await Promise.all([
+                    getLiveExamStats(examId),
+                    getLiveStudentStatuses(examId)
+                ]);
+                setStats(statsData.summary || statsData);
+                setViolationsCount(statsData.violations || { tabSwitches: 0, fullscreenExits: 0 });
+                setStudents(studentsData || []);
+            } catch (err) {
+                console.error("Failed to fetch live monitoring data:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const violations = {
-        tabSwitches: 34,
-        fullscreenExits: 12
-    };
-
-    const students = [
-        {
-            id: "S101",
-            name: "Ankit Singh",
-            status: "In Progress",
-            tabSwitches: 2,
-            fullscreenExits: 0
-        },
-        {
-            id: "S102",
-            name: "Riya Sharma",
-            status: "Submitted",
-            tabSwitches: 0,
-            fullscreenExits: 0
-        },
-        {
-            id: "S103",
-            name: "Kunal Verma",
-            status: "Auto-submitted",
-            tabSwitches: 4,
-            fullscreenExits: 2
-        }
-    ];
+        fetchLiveData();
+        const interval = setInterval(fetchLiveData, 5000); // Poll every 5s
+        return () => clearInterval(interval);
+    }, [examId]);
 
     const statusBadge = (status) => {
         switch (status) {
@@ -61,6 +54,8 @@ function LiveExamMonitoring() {
         }
     };
 
+    if (loading) return <div className="p-5 text-center">Loading live monitor...</div>;
+
     return (
         <div>
             <h2 className="mb-4">Live Exam Monitoring</h2>
@@ -72,7 +67,7 @@ function LiveExamMonitoring() {
                         <div className="card-body">
                             <FaUsers size={28} className="text-primary mb-2" />
                             <h6>Total Attempted</h6>
-                            <h3>{examStats.attempted}</h3>
+                            <h3>{stats.attempted}</h3>
                         </div>
                     </div>
                 </div>
@@ -82,7 +77,7 @@ function LiveExamMonitoring() {
                         <div className="card-body">
                             <FaUserCheck size={28} className="text-success mb-2" />
                             <h6>Active Students</h6>
-                            <h3>{examStats.active}</h3>
+                            <h3>{stats.active}</h3>
                         </div>
                     </div>
                 </div>
@@ -92,7 +87,7 @@ function LiveExamMonitoring() {
                         <div className="card-body">
                             <FaExclamationTriangle size={28} className="text-danger mb-2" />
                             <h6>Auto-Submitted</h6>
-                            <h3>{examStats.autoSubmitted}</h3>
+                            <h3>{stats.autoSubmitted}</h3>
                         </div>
                     </div>
                 </div>
@@ -106,11 +101,11 @@ function LiveExamMonitoring() {
                 <div className="card-body d-flex justify-content-between">
                     <span>
                         <FaExternalLinkAlt className="me-2 text-danger" />
-                        Tab Switches: <strong>{violations.tabSwitches}</strong>
+                        Tab Switches: <strong>{violationsCount.tabSwitches}</strong>
                     </span>
                     <span>
                         <FaWindowClose className="me-2 text-danger" />
-                        Fullscreen Exits: <strong>{violations.fullscreenExits}</strong>
+                        Fullscreen Exits: <strong>{violationsCount.fullscreenExits}</strong>
                     </span>
                 </div>
             </div>

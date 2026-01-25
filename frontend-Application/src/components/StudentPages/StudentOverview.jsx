@@ -1,13 +1,34 @@
 // src/components/StudentPages/StudentHome.jsx (renamed from StudentHome to StudentOverview for clarity)
-import React from 'react';
-import { Link } from 'react-router-dom'; // Ensure Link is from react-router-dom
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { FaUserCircle, FaBookOpen, FaClipboardList, FaHistory, FaPollH, FaClock } from 'react-icons/fa';
 import { getCurrentUser } from "../../services/auth/authService";
-// No need to import './studentHome.css' here, it's handled by StudentLayout
-// No need for useState or useEffect for sidebar toggle here
+import { getAllAnnouncements } from "../../services/common/announcementService";
 
-function StudentOverview() { // Renamed for clarity, you can keep StudentHome if you prefer
+function StudentOverview() {
     const authUser = getCurrentUser();
+    const [announcements, setAnnouncements] = useState([]);
+
+    useEffect(() => {
+        fetchAnnouncements();
+    }, []);
+
+    const fetchAnnouncements = async () => {
+        try {
+            const data = await getAllAnnouncements();
+            if (Array.isArray(data)) {
+                // Filter for Student or All, and check expiry if needed (assuming backend might return expired)
+                const today = new Date().toISOString().split('T')[0];
+                const relevant = data.filter(a =>
+                    (a.targetRole === 'All' || a.targetRole === 'Student') &&
+                    (!a.expiryDate || a.expiryDate >= today)
+                );
+                setAnnouncements(relevant);
+            }
+        } catch (err) {
+            console.error("Failed to load announcements", err);
+        }
+    };
 
     const studentName = authUser?.name ?? "Student";
     const studentId = authUser?.id ? `S${String(authUser.id).padStart(5, "0")}` : "S00000";
@@ -85,8 +106,8 @@ function StudentOverview() { // Renamed for clarity, you can keep StudentHome if
                     </div>
                 </div>
 
-                 {/* F. Results & Scorecard */}
-                 <div className="col-md-6 col-lg-4">
+                {/* F. Results & Scorecard */}
+                <div className="col-md-6 col-lg-4">
                     <div className="card h-100 shadow-sm border-0">
                         <div className="card-body">
                             <h5 className="card-title text-warning"><FaPollH className="me-2" /> Results & Scorecard</h5>
@@ -108,12 +129,18 @@ function StudentOverview() { // Renamed for clarity, you can keep StudentHome if
                         <div className="card-body">
                             <h5 className="card-title text-primary">Notifications / Announcements</h5>
                             <p className="card-text">Stay updated with important announcements and deadlines.</p>
-                            <div className="alert alert-info" role="alert">
-                                Final exams schedule published. Check "Available Exams"!
-                            </div>
-                            <div className="alert alert-warning" role="alert">
-                                Your CS101 assignment is due in 3 days.
-                            </div>
+
+                            {announcements.length === 0 ? (
+                                <p className="text-muted small">No active announcements.</p>
+                            ) : (
+                                announcements.map(anno => (
+                                    <div key={anno.id} className={`alert ${anno.targetRole === 'All' ? 'alert-info' : 'alert-warning'} mb-2`} role="alert">
+                                        <strong>{anno.title}</strong>
+                                        <div className="small">{anno.description}</div>
+                                        {anno.expiryDate && <div className="text-muted" style={{ fontSize: '0.75rem' }}>Expires: {anno.expiryDate}</div>}
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

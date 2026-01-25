@@ -1,80 +1,38 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaEdit, FaPlusCircle, FaTrash } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-
-const STORAGE_KEY = "instructorQuestionBankV1";
-
-const loadQuestionBank = () => {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-};
-
-const saveQuestionBank = (questions) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(questions));
-};
+import { getQuestionsByCourse, updateQuestion as updateQuestionService, deleteQuestion as deleteQuestionService } from '../../../services/instructor/questionService';
 
 const ManageQuestions = () => {
     const { courseCode } = useParams();
     const navigate = useNavigate();
 
-    const [allQuestions, setAllQuestions] = useState(() => {
-        const defaults = [
-            {
-                id: "seed-cs204-1",
-                courseCode: "CS204",
-                type: "single",
-                text: "What is a Binary Tree?",
-                options: ["A graph", "A tree with max 2 children", "A sorting algorithm", "A database index"],
-                correctAnswer: 1,
-                difficulty: "Easy",
-            },
-            {
-                id: "seed-cs204-2",
-                courseCode: "CS204",
-                type: "multiple",
-                text: "Which of these are linear data structures?",
-                options: ["Array", "Linked List", "Tree", "Graph"],
-                correctAnswer: [0, 1],
-                difficulty: "Medium",
-            },
-            {
-                id: "seed-cs210-1",
-                courseCode: "CS210",
-                type: "truefalse",
-                text: "A primary key can contain NULL values.",
-                options: ["True", "False"],
-                correctAnswer: "False",
-                difficulty: "Easy",
-            },
-        ];
-
-        const stored = loadQuestionBank();
-        const hasAnySeed = stored.some((q) => typeof q?.id === "string" && q.id.startsWith("seed-"));
-        if (stored.length === 0 || !hasAnySeed) {
-            const existingIds = new Set(stored.map((q) => q?.id));
-            const toAdd = defaults.filter((q) => !existingIds.has(q.id));
-            const next = [...stored, ...toAdd];
-            saveQuestionBank(next);
-            return next;
-        }
-        return stored;
-    });
+    const [allQuestions, setAllQuestions] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [typeFilter, setTypeFilter] = useState("all");
     const [editingId, setEditingId] = useState(null);
     const [draft, setDraft] = useState(null);
 
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                const data = await getQuestionsByCourse(courseCode);
+                setAllQuestions(data || []);
+            } catch (err) {
+                console.error("Failed to fetch questions:", err);
+                toast.error("Could not load questions for this course.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchQuestions();
+    }, [courseCode]);
+
     const courseQuestions = useMemo(() => {
-        const byCourse = allQuestions.filter((q) => q?.courseCode === courseCode);
-        if (typeFilter === "all") return byCourse;
-        return byCourse.filter((q) => q?.type === typeFilter);
-    }, [allQuestions, courseCode, typeFilter]);
+        if (typeFilter === "all") return allQuestions;
+        return allQuestions.filter((q) => q?.type === typeFilter);
+    }, [allQuestions, typeFilter]);
 
     const startEdit = (q) => {
         setEditingId(q.id);
@@ -159,7 +117,7 @@ const ManageQuestions = () => {
         });
     };
 
-    const saveEdit = () => {
+    const saveEdit = async () => {
         if (!draft) return;
         const text = (draft.text || "").trim();
         const marks = Number(draft.marks);
@@ -173,84 +131,36 @@ const ManageQuestions = () => {
             return;
         }
 
-        if (draft.type === "single" || draft.type === "multiple") {
-            const options = (draft.options || []).map((o) => (o || "").trim());
-            if (options.length !== 4 || options.some((o) => !o)) {
-                toast.error("Please fill all 4 options.");
-                return;
-            }
+        const nextQuestionData = {
+            ...draft,
+            text,
+            marks,
+            options: draft.type === "matching" ? [] : (draft.options || []).map((o) => (o || "").trim()),
+            pairs: draft.type === "matching" ? (draft.pairs || []).map((p) => ({ left: String(p?.left || "").trim(), right: String(p?.right || "").trim() })) : undefined,
+        };
+
+        try {
+            await updateQuestionService(draft.id, nextQuestionData);
+            setAllQuestions((prev) => prev.map((q) => q.id === draft.id ? nextQuestionData : q));
+            toast.success("Question updated successfully.");
+            cancelEdit();
+        } catch (err) {
+            toast.error("Failed to update question: " + err.message);
         }
-
-        if (draft.type === "single") {
-            const idx = Number(draft.correctAnswer);
-            if (!Number.isInteger(idx) || idx < 0 || idx > 3) {
-                toast.error("Select the correct option.");
-                return;
-            }
-        }
-
-        if (draft.type === "multiple") {
-            const indices = Array.isArray(draft.correctAnswer) ? draft.correctAnswer : [];
-            if (indices.length === 0) {
-                toast.error("Select at least one correct option.");
-                return;
-            }
-            if (indices.some((i) => !Number.isInteger(i) || i < 0 || i > 3)) {
-                toast.error("Invalid correct options selected.");
-                return;
-            }
-        }
-
-        if (draft.type === "truefalse") {
-            if (draft.correctAnswer !== "True" && draft.correctAnswer !== "False") {
-                toast.error("Select True or False as correct answer.");
-                return;
-            }
-        }
-
-        if (draft.type === "matching") {
-            const pairs = (draft.pairs || []).map((p) => ({
-                left: String(p?.left || "").trim(),
-                right: String(p?.right || "").trim(),
-            }));
-            if (pairs.length < 2) {
-                toast.error("Add at least 2 matching pairs.");
-                return;
-            }
-            if (pairs.some((p) => !p.left || !p.right)) {
-                toast.error("Fill all matching pairs.");
-                return;
-            }
-        }
-
-        const nextAll = allQuestions.map((q) => {
-            if (q.id !== draft.id) return q;
-            return {
-                ...q,
-                type: draft.type,
-                text: text,
-                options: draft.type === "matching" ? [] : (draft.options || []).map((o) => (o || "").trim()),
-                correctAnswer: draft.correctAnswer,
-                difficulty: draft.difficulty || "Medium",
-                marks: marks,
-                pairs: draft.type === "matching" ? (draft.pairs || []).map((p) => ({ left: String(p?.left || "").trim(), right: String(p?.right || "").trim() })) : undefined,
-            };
-        });
-
-        setAllQuestions(nextAll);
-        saveQuestionBank(nextAll);
-        toast.success("Question updated.");
-        cancelEdit();
     };
 
-    const deleteQuestion = (questionId) => {
-        const ok = window.confirm("Delete this question?");
+    const deleteQuestion = async (questionId) => {
+        const ok = window.confirm("Are you sure you want to delete this question?");
         if (!ok) return;
-        const nextAll = allQuestions.filter((q) => q.id !== questionId);
-        setAllQuestions(nextAll);
-        saveQuestionBank(nextAll);
-        toast.success("Question deleted.");
-        if (editingId === questionId) cancelEdit();
+
+        try {
+            await deleteQuestionService(questionId);
+            setAllQuestions((prev) => prev.filter((q) => q.id !== questionId));
+            toast.success("Question deleted successfully.");
+            if (editingId === questionId) cancelEdit();
+        } catch (err) {
+            toast.error("Failed to delete question: " + err.message);
+        }
     };
 
     return (

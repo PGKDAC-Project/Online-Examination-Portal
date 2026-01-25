@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaCheckCircle, FaTimesCircle, FaMinusCircle, FaTrophy } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import { mockExamResults } from "./Result/mockExamResult"; // Access existing mock data
+import { getDetailedResult } from "../../services/student/studentService";
 import { exportToPDF } from "../../utils/exportUtils";
 
 const Scorecard = () => {
@@ -10,10 +10,9 @@ const Scorecard = () => {
     const [result, setResult] = useState(null);
 
     useEffect(() => {
-        // Mock fetch based on resultId (using examId as key for mock)
-        // In real app, fetch /api/results/:id
-        const data = mockExamResults[resultId];
-        if (data) setResult(data);
+        getDetailedResult(resultId).then(data => {
+            setResult(data);
+        });
     }, [resultId]);
 
     if (!result) return <div className="p-5 text-center">Loading Result or Not Found...</div>;

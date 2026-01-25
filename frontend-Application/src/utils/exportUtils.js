@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 export const exportToCSV = (data, filename) => {
@@ -49,20 +49,10 @@ export const exportToPDF = (data, columns, title, filename) => {
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
 
     // Prepare table data
-    // columns is array of strings (headers) matching keys or simple strings
-    // data is array of objects. We usually need to map keys to columns implicitly or explicitly.
-    // For simplicity, we assume 'data' is already mapped or we use Object.values if no explicit column mapping provided, 
-    // but better to pass array of arrays for body.
+    // Robustly map data to array of arrays based on columns keys (assuming keys match column names or we map by index if provided)
+    // Since input 'data' in ActivityLogs uses keys matching 'columns' names (e.g. "Time", "User"), we can use Object.values if ordered, but safer to keys.
+    const tableBody = data.map(obj => columns.map(col => obj[col] || '-'));
 
-    // Convert array of objects to array of arrays based on columns if necessary, 
-    // but autotable supports array of objects if columns are specified properly.
-    // Usage: exportToPDF(dataOfObjects, ["Col1", "Col2"], "Title", "filename")
-    // If we assume columns match keys:
-
-    const tableBody = data.map(obj => Object.values(obj));
-    // Or if data is already formatted. 
-
-    // Let's use autoTable
     doc.autoTable({
         startY: 35,
         head: [columns],

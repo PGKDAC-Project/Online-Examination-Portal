@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from "react-router-dom";
 import "./InstructorOverview.css";
 
@@ -82,6 +83,51 @@ const InstructorOverview = () => {
         </div>
 
       </div>
+
+      {/* ===== ANNOUNCEMENTS SECTION ===== */}
+      <div className="mt-4">
+        <h3 className="mb-3">📢 Admin Announcements</h3>
+        <InstructorAnnouncements />
+      </div>
+
+    </div>
+  );
+};
+
+const InstructorAnnouncements = () => {
+  const [list, setList] = React.useState([]);
+
+  React.useEffect(() => {
+    import("../../services/common/announcementService").then(service => {
+      service.getAllAnnouncements().then(data => {
+        if (Array.isArray(data)) {
+          const today = new Date().toISOString().split('T')[0];
+          // Admin announcements (Role=All or Role=Instructor)
+          const relevant = data.filter(a =>
+            (a.targetRole === 'All' || a.targetRole === 'Instructor') &&
+            (!a.expiryDate || a.expiryDate >= today)
+          );
+          setList(relevant);
+        }
+      }).catch(err => console.error(err));
+    });
+  }, []);
+
+  if (list.length === 0) return <p className="text-muted">No active announcements.</p>;
+
+  return (
+    <div className="row g-3">
+      {list.map(anno => (
+        <div key={anno.id} className="col-md-6">
+          <div className="card shadow-sm border-start border-4 border-primary">
+            <div className="card-body">
+              <h5 className="card-title">{anno.title}</h5>
+              <p className="card-text text-secondary">{anno.description}</p>
+              <small className="text-muted">Target: {anno.targetRole}</small>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

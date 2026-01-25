@@ -1,46 +1,13 @@
-import React, { useRef, useState } from 'react'; // Import useRef and useState
-// ... other imports
+import React, { useState } from 'react';
 
 const StudentProfileView = () => {
     // Assume you have profile data
-    const [student, setStudent] = useState({ // Use useState to manage student data
+    const [student, setStudent] = useState({
         fullName: "Ankit Singh",
         username: "Ankit_24___",
         studentId: "S123456789",
         email: "Arkkseies967@gmail.com",
-        profilePic: "https://via.placeholder.com/150/0000FF/FFFFFF?text=Profile" // Initial profile picture
-        // ... other editable fields
     });
-
-    // Create a ref for the hidden file input
-    const fileInputRef = useRef(null);
-
-    // Function to handle the "Change Photo" button click
-    const handleChangePhotoButtonClick = () => {
-        // Programmatically click the hidden file input
-        fileInputRef.current.click();
-    };
-
-    // Function to handle file selection
-    const handleFileChange = (event) => {
-        const file = event.target.files[0]; // Get the selected file
-        if (file) {
-            // Here you would typically upload the file to your backend
-            // For now, let's just display it locally as a preview
-
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setStudent(prevStudent => ({
-                    ...prevStudent,
-                    profilePic: reader.result // Set the profilePic to the new image data URL
-                }));
-            };
-            reader.readAsDataURL(file); // Read the file as a data URL
-            // In a real application, you would send this 'file' object
-            // to a server using a FormData object and an API call (e.g., Axios, fetch).
-            // Example: uploadProfilePhoto(file);
-        }
-    };
 
     return (
         <div className="container-fluid py-4">

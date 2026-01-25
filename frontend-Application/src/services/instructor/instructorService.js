@@ -1,16 +1,25 @@
-import { axiosClient } from "../axios/axiosClient";
-
-export const getInstructorDashboard = async () => {
-  const res = await axiosClient.get("/instructor/dashboard");
-  return res.data;
-};
+import axiosClient from "../axios/axiosClient";
 
 export const getInstructorCourses = async () => {
-  const res = await axiosClient.get("/instructor/courses");
-  return res.data;
+  return await axiosClient.get("/instructor/courses");
 };
 
-export const getInstructorExams = async () => {
-  const res = await axiosClient.get("/instructor/exams");
-  return res.data;
+export const getEnrolledStudents = async (courseId) => {
+  return await axiosClient.get(`/courses/${courseId}/enrollments`);
+};
+
+export const uploadSyllabus = async (courseId, syllabusData) => {
+  return await axiosClient.post(`/courses/${courseId}/syllabus`, syllabusData);
+};
+
+export const defineOutcomes = async (courseId, outcomesData) => {
+  return await axiosClient.post(`/courses/${courseId}/outcomes`, outcomesData);
+};
+
+export const getLiveExamStats = async (examId) => {
+  return await axiosClient.get(`/exams/${examId}/live-stats`);
+};
+
+export const getLiveStudentStatuses = async (examId) => {
+  return await axiosClient.get(`/exams/${examId}/live-students`);
 };

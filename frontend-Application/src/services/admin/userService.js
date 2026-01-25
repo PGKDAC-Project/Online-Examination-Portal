@@ -1,14 +1,18 @@
-import { mockUsers } from "../../components/AdminPages/mockAdminData";
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Mock user service to get instructors
-export const getAllInstructors = async () => {
-    await delay(300);
-    return mockUsers.filter(u => u.role === "Instructor");
-};
+import axiosClient from "../axios/axiosClient";
 
 export const getAllUsers = async () => {
-    await delay(300);
-    return mockUsers;
+    return await axiosClient.get("/users");
+};
+
+export const getUserById = async (id) => {
+    return await axiosClient.get(`/users/${id}`);
+};
+
+export const getUsersByRole = async (role) => {
+    // Assumes backend supports query param filtering
+    return await axiosClient.get(`/users?role=${role}`);
+};
+
+export const getAllInstructors = async () => {
+    return await getUsersByRole("instructor");
 };

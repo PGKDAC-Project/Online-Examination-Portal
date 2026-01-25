@@ -37,7 +37,7 @@ const CreateExam = () => {
         setExam({ ...exam, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const title = (exam.title || "").trim();
         const courseCode = (exam.courseCode || "").trim();
@@ -130,11 +130,11 @@ const CreateExam = () => {
                             </div>
                             <div className="col-md-4">
                                 <label className="form-label">Passing Criteria (%)</label>
-                                <input 
-                                    type="number" 
-                                    className="form-control" 
-                                    disabled 
-                                    value={exam.passingMarks && exam.totalMarks ? ((exam.passingMarks / exam.totalMarks) * 100).toFixed(1) : "N/A"} 
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    disabled
+                                    value={exam.passingMarks && exam.totalMarks ? ((exam.passingMarks / exam.totalMarks) * 100).toFixed(1) : "N/A"}
                                     placeholder="Calculated automatically"
                                 />
                                 <small className="text-muted">Will be calculated based on total questions.</small>

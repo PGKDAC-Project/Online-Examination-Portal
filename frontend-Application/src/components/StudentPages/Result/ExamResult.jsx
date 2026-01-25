@@ -1,10 +1,40 @@
 // src/components/StudentPages/ExamResult.jsx
 import { useParams } from "react-router-dom";
-import { mockExamResults } from "./mockExamResult";
-import "./ExamResult.css"
+import { useState, useEffect } from "react";
+import { getDetailedResult } from "../../../services/student/studentService";
+import "./ExamResult.css";
+
 const StudentExamResult = () => {
   const { examId } = useParams();
-  const result = mockExamResults[examId];
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchResult = async () => {
+      try {
+        setLoading(true);
+        const data = await getDetailedResult(examId);
+        setResult(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching exam result:", err);
+        setError("Failed to load exam result. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResult();
+  }, [examId]);
+
+  if (loading) {
+    return <div className="exam-result"><h2>📊 Exam Result</h2><p>Loading result...</p></div>;
+  }
+
+  if (error) {
+    return <div className="exam-result"><h2>📊 Exam Result</h2><p className="error">{error}</p></div>;
+  }
 
   if (!result) {
     return <h3>Result not found</h3>;

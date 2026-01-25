@@ -13,18 +13,18 @@ import com.oep.entities.User;
 import com.oep.repository.AuthRepository;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Slf4j
+//@Slf4j
 public class CustomUserDetailsServiceImpl implements UserDetailsService {
 	private final AuthRepository authRepository;
 	
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		log.info("********* in load user ");
+		//log.info("********* in load user ");
 		User user=authRepository.findByEmail(email)
 				.orElseThrow(() -> new UsernameNotFoundException("User by this email doesn't exist!"));
 		//email verified

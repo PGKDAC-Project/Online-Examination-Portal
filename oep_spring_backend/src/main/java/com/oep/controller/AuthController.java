@@ -29,24 +29,28 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
 
-
-    //login
+    // login
     @PostMapping("/signin")
     @Operation(description = "User Login")
     public ResponseEntity<AuthResp> userSignIn(@RequestBody @Valid LoginDto dto) {
         Authentication authentication = authenticationManager
-        		.authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
+                .authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         String token = jwtUtils.generateToken(principal);
-        return ResponseEntity.ok(new AuthResp(token, "Successfully logged in"));
+        Long userId = principal.getUserId();
+        String role = principal.getUserRole();
+        if (role != null && role.startsWith("ROLE_")) {
+            role = role.substring(5).toLowerCase();
+        }
+        return ResponseEntity.ok(new AuthResp(userId, token, role, "Successfully logged in"));
     }
 
     // forgot Password
     @PostMapping("/forgot-password")
     @Operation(description = "Send reset password link")
     public ResponseEntity<ApiResponse> forgotPassword(@RequestBody @Valid ForgotPasswordDto dto) {
-        System.out.println("Email: "+ dto.getEmail());
-    	authService.sendResetPasswordLink(dto.getEmail());
+        System.out.println("Email: " + dto.getEmail());
+        authService.sendResetPasswordLink(dto.getEmail());
         return ResponseEntity.ok(new ApiResponse("success", "Reset link has been sent"));
     }
 
@@ -54,26 +58,17 @@ public class AuthController {
     @GetMapping("/reset-password/validate")
     @Operation(description = "Validate reset password token")
     public ResponseEntity<ApiResponse> validateToken(@RequestParam String token) {
-
         authService.validateToken(token);
-
         return ResponseEntity.ok(new ApiResponse("success", "Token is valid"));
     }
 
-    //Reset Password
+    // Reset Password
     @PostMapping("/reset-password")
     @Operation(description = "Reset password using token")
     public ResponseEntity<ApiResponse> resetPassword(@RequestBody @Valid ResetPasswordDto dto) {
-
         authService.resetPassword(dto.getToken(), dto.getNewPassword());
-
         return ResponseEntity.ok(new ApiResponse("success", "Password reset successfully"));
     }
-    
-    @GetMapping("/test-mail")
-    public String testMail() {
-        emailService.sendResetPasswordLink("Arkkseies967@gmail.com", "dummy-token-123");
-        return "Mail sent (if config is correct)";
-    }
+
 
 }

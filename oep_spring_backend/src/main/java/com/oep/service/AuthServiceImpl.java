@@ -25,11 +25,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void sendResetPasswordLink(String email) {
-//        Optional<User> optionalUser = authRepository.findByEmail(email);
-//        if (optionalUser.isEmpty()) {
-//            return;
-//        }
-//        User user = optionalUser.get();
         User user = authRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("Invalid Email id"));
         System.out.println("User: \n"+ user.toString());
         String token = UUID.randomUUID().toString() + UUID.randomUUID().toString();

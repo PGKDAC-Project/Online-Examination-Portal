@@ -11,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -27,35 +28,39 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ExamResults extends BaseEntity {
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "exam_id", nullable = false)
-    private Exam exam;
-	
+	@JoinColumn(name = "exam_id", nullable = false)
+	private Exam exam;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "student_id", nullable = false)
 	private User student;
 
 	@Column(name = "total_marks", nullable = false)
 	private Integer totalMarks;
-	
+
 	@Column(name = "total_score", nullable = false)
 	private Integer totalScore = 0;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 10)
 	private ResultStatus status = ResultStatus.PENDING;
-	
-	@Column(name = "submitted_at", updatable = false) 
+
+	@Column(name = "submitted_at", updatable = false)
 	private LocalDateTime submittedAt;
-	
+
 	@Column(name = "is_evaluated", nullable = false)
 	private Boolean isEvaluated = false;
-	
+
+	@Column(name = "violation_count", nullable = false)
+	private Integer violationCount = 0;
+
+	@OneToMany(mappedBy = "examResult", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+	private java.util.List<ExamViolation> violations = new java.util.ArrayList<>();
+
 	@PrePersist
 	public void onSubmit() {
 		this.submittedAt = LocalDateTime.now();
 	}
 }
-
-

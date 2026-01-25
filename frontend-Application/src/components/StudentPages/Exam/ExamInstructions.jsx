@@ -1,24 +1,56 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { mockExams } from './mockExams';
+import { useState, useEffect } from "react";
+import { getAvailableExams } from "../../../services/student/studentService";
 import { toast } from "react-toastify";
 
 const ExamInstructions = () => {
   const { examId } = useParams();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
+  const [exam, setExam] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const exam = mockExams.find(e => e.examId === examId);
+  useEffect(() => {
+    const fetchExamDetails = async () => {
+      try {
+        setLoading(true);
+        const exams = await getAvailableExams();
+        const foundExam = exams.find(e => e.examId === examId);
 
-  if (!exam) return <h3>Invalid Exam</h3>;
+        if (!foundExam) {
+          setError("Exam not found");
+        } else {
+          setExam(foundExam);
+        }
+      } catch (err) {
+        console.error("Error fetching exam details:", err);
+        setError("Failed to load exam details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExamDetails();
+  }, [examId]);
 
   const handleProceed = () => {
-    if (password.trim() !== exam.password.trim()) {
-      toast.warning("Incorrect exam password");
+    if (!exam) return;
+    if (!password.trim()) {
+      toast.warning("Please enter the exam password");
       return;
     }
-    navigate(`/student/exams/${examId}/details`);
+    // Pass password to the attempt page which will send it to the backend
+    navigate(`/student/exams/${examId}/attempt`, { state: { examPassword: password } });
   };
+
+  if (loading) {
+    return <div><h2>Loading exam instructions...</h2></div>;
+  }
+
+  if (error || !exam) {
+    return <div><h3>{error || "Invalid Exam"}</h3></div>;
+  }
 
   return (
     <div>

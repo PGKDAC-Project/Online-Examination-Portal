@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { FaBullhorn, FaPlus, FaTrash, FaInfoCircle, FaExclamationTriangle } from "react-icons/fa";
+import { FaPlus, FaTrash } from "react-icons/fa";
 import { getAllAnnouncements, createAnnouncement, deleteAnnouncement } from "../../services/common/announcementService";
 import { getAllBatches } from "../../services/admin/batchService";
 import { getCurrentUser } from "../../services/auth/authService";
+import { toast } from "react-toastify";
 
 const AnnouncementManagement = () => {
     const [announcements, setAnnouncements] = useState([]);
@@ -15,11 +16,8 @@ const AnnouncementManagement = () => {
         description: "",
         targetRole: "All",
         targetBatch: "",
-        priority: "Medium"
+        expiryDate: ""
     });
-
-    const currentUser = useMemo(() => getCurrentUser(), []);
-    const isInstructor = (currentUser?.role || "").toLowerCase() === "instructor";
 
     useEffect(() => {
         loadData();
@@ -32,10 +30,11 @@ const AnnouncementManagement = () => {
                 getAllAnnouncements(),
                 getAllBatches()
             ]);
-            setAnnouncements(data);
-            setBatches(batchList);
+            setAnnouncements(Array.isArray(data) ? data : []);
+            setBatches(Array.isArray(batchList) ? batchList : []);
         } catch (err) {
             console.error(err);
+            toast.error("Failed to load announcements");
         } finally {
             setLoading(false);
         }
@@ -43,8 +42,13 @@ const AnnouncementManagement = () => {
 
     const handleDelete = async (id) => {
         if (window.confirm("Delete this announcement?")) {
-            await deleteAnnouncement(id);
-            loadData();
+            try {
+                await deleteAnnouncement(id);
+                // toast.success("Announcement deleted"); // Removed
+                loadData();
+            } catch (err) {
+                toast.error("Failed to delete announcement");
+            }
         }
     };
 
@@ -52,11 +56,12 @@ const AnnouncementManagement = () => {
         e.preventDefault();
         try {
             await createAnnouncement(formData);
+            // toast.success("Announcement posted successfully"); // Removed
             setShowModal(false);
-            setFormData({ title: "", description: "", targetRole: "All", targetBatch: "", priority: "Medium" });
+            setFormData({ title: "", description: "", targetRole: "All", targetBatch: "", expiryDate: "" });
             loadData();
         } catch (err) {
-            alert("Failed to create announcement");
+            toast.error("Failed to create announcement");
         }
     };
 
@@ -72,19 +77,22 @@ const AnnouncementManagement = () => {
             <div className="row g-4">
                 {loading ? <div className="col-12 text-center p-5">Loading...</div> : announcements.map(anno => (
                     <div key={anno.id} className="col-md-6 col-lg-4">
-                        <div className={`card-custom h-100 border-start border-4 border-${anno.priority === 'High' ? 'danger' : anno.priority === 'Medium' ? 'warning' : 'info'}`}>
-                            <div className="card-body">
-                                <div className="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 className="fw-bold mb-0 text-truncate" title={anno.title}>{anno.title}</h5>
+                        <div className="card-custom h-100 shadow-sm border-0 bg-white">
+                            <div className="card-body p-4">
+                                <div className="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 className="fw-bold mb-0 text-dark text-truncate" title={anno.title}>{anno.title}</h5>
                                     <button className="btn btn-sm btn-light text-danger" onClick={() => handleDelete(anno.id)}>
                                         <FaTrash />
                                     </button>
                                 </div>
-                                <div className="mb-2">
-                                    <span className="badge bg-light text-dark me-2">{anno.date}</span>
-                                    <span className="badge bg-light text-dark border">Target: {anno.targetRole} {anno.targetBatch && `(${anno.targetBatch})`}</span>
+                                <div className="mb-3">
+                                    <span className="badge bg-light text-secondary me-2 border">{anno.date}</span>
+                                    <span className="badge bg-primary bg-opacity-10 text-primary">Target: {anno.targetRole} {anno.targetBatch && `(${anno.targetBatch})`}</span>
+                                    {anno.expiryDate && (
+                                        <div className="mt-1 small text-muted">Expires: {anno.expiryDate}</div>
+                                    )}
                                 </div>
-                                <p className="text-secondary mb-0">{anno.description}</p>
+                                <p className="text-secondary mb-0" style={{ lineHeight: '1.6' }}>{anno.description}</p>
                             </div>
                         </div>
                     </div>
@@ -126,13 +134,9 @@ const AnnouncementManagement = () => {
                                             </select>
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label fw-medium">Priority</label>
-                                            <select className="form-select form-control-custom" value={formData.priority}
-                                                onChange={e => setFormData({ ...formData, priority: e.target.value })}>
-                                                <option value="Low">Low (Info)</option>
-                                                <option value="Medium">Medium (Warning)</option>
-                                                <option value="High">High (Critical)</option>
-                                            </select>
+                                            <label className="form-label fw-medium">Expiry Date</label>
+                                            <input type="date" className="form-control form-control-custom"
+                                                value={formData.expiryDate} onChange={e => setFormData({ ...formData, expiryDate: e.target.value })} />
                                         </div>
                                     </div>
                                     {(formData.targetRole === "Student" || formData.targetRole === "All") && (

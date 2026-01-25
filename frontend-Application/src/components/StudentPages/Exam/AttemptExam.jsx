@@ -1,13 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useExamSecurity } from "./useExamSecurity";
 import { useFullscreenEnforcement } from "./useFullscreenEnforcement";
-import { mockQuestionBank } from "./mockQuestionBank";
+import { startExam as fetchExamQuestions } from "../../../services/student/studentService";
 import ReviewAnswers from "./ReviewAnswers";
 import "./AttemptExam.css";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+
 const AttemptExam = ({ duration = 60 }) => {
-  const questions = mockQuestionBank;
+  const { examId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const examPassword = location.state?.examPassword;
+
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -15,8 +22,32 @@ const AttemptExam = ({ duration = 60 }) => {
   const [timeLeft, setTimeLeft] = useState(duration * 60);
   const [isReviewing, setIsReviewing] = useState(false);
 
+  useEffect(() => {
+    if (!examPassword) {
+      toast.error("Access denied. Please enter exam password.");
+      navigate(`/student/exams/${examId}/instructions`);
+      return;
+    }
+
+    const loadQuestions = async () => {
+      try {
+        const response = await fetchExamQuestions(examId, examPassword);
+        // Assumes response.questions is the array, or response is the array
+        const qList = Array.isArray(response) ? response : (response.questions || []);
+        setQuestions(qList);
+      } catch (err) {
+        toast.error("Failed to start exam. " + err.message);
+        navigate("/student/exams");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadQuestions();
+  }, [examId, examPassword, navigate]);
+
+  if (loading) return <div className="p-5 text-center">Loading exam questions...</div>;
+
   /* ================= SUBMIT LOGIC ================= */
-  const navigate = useNavigate();
   const submittedRef = useRef(false);
 
   const submitExam = useCallback(() => {
@@ -37,10 +68,10 @@ const AttemptExam = ({ duration = 60 }) => {
 
   /* ================= SECURITY HOOKS ================= */
 
-  const { violations } = useExamSecurity(autoSubmit);
-  useFullscreenEnforcement(autoSubmit);
+  const { violations } = useExamSecurity(examId, (reason) => autoSubmit(reason));
+  useFullscreenEnforcement(examId, (reason) => autoSubmit(reason));
 
-  
+
   /* ================= TIMER ================= */
 
   useEffect(() => {
@@ -78,24 +109,24 @@ const AttemptExam = ({ duration = 60 }) => {
   /* ================= REVIEW MODE ================= */
   if (isReviewing) {
     return (
-        <ReviewAnswers 
-            questions={questions} 
-            answers={answers} 
-            onSubmit={submitExam} 
-            onBack={(index) => {
-                if (typeof index === 'number') {
-                    setCurrent(index);
-                }
-                setIsReviewing(false);
-            }} 
-        />
+      <ReviewAnswers
+        questions={questions}
+        answers={answers}
+        onSubmit={submitExam}
+        onBack={(index) => {
+          if (typeof index === 'number') {
+            setCurrent(index);
+          }
+          setIsReviewing(false);
+        }}
+      />
     );
   }
 
   const currentQuestion = questions[current];
 
   if (!currentQuestion) {
-      return <div>Error: Question not found</div>;
+    return <div>Error: Question not found</div>;
   }
 
   /* ================= ANSWER HANDLING ================= */
@@ -123,130 +154,176 @@ const AttemptExam = ({ duration = 60 }) => {
 
   /* ================Time Format===============*/
   const formatTime = (seconds) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
 
-  return h > 0
-    ? `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
-    : `${m}:${s.toString().padStart(2, "0")}`;
-};
+    return h > 0
+      ? `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
+      : `${m}:${s.toString().padStart(2, "0")}`;
+  };
 
 
   /* ================= RENDER ================= */
 
-return (
-  <div className="exam-root">
+  /* ================= FULLSCREEN BLOCKER ================= */
+  const [isFullscreen, setIsFullscreen] = useState(false); // Default false
+  const [strictMode, setStrictMode] = useState(false);
 
-    {/* TOP BAR */}
-    <header className="exam-topbar">
-      <div className="exam-title">
-        <strong>DSA</strong>
-        <span>Quiz</span>
-      </div>
+  useEffect(() => {
+    const settings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+    setStrictMode(!!settings.fullscreenEnforcement);
 
-      <div className="exam-timer">
-        <span>⏱ Time Left: {formatTime(timeLeft)}</span>
-      </div>
-      <div className="exam-violations">
-        <span>⚠ Violations: {violations}</span>
-      </div>
-    </header>
+    const checkFull = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', checkFull);
+    checkFull(); // Init check
 
-    {/* MAIN CONTENT */}
-    <div className="exam-main">
+    return () => document.removeEventListener('fullscreenchange', checkFull);
+  }, []);
 
-      {/* QUESTION AREA */}
-      <section className="exam-question">
-        <h4>Question {current + 1}</h4>
-        <p>{currentQuestion.question}</p>
+  const requestFullScreen = () => {
+    document.documentElement.requestFullscreen().catch(err => {
+      toast.error("Could not enter fullscreen mode: " + err.message);
+    });
+  };
 
-        <div className="exam-options">
-          {currentQuestion.options.map((opt) => (
-            <label key={opt} className="exam-option">
-              <input
-                type={
-                  currentQuestion.type === "multiple"
-                    ? "checkbox"
-                    : "radio"
-                }
-                name={`q-${current}`}
-                checked={
-                  currentQuestion.type === "multiple"
-                    ? answers[current]?.includes(opt)
-                    : answers[current] === opt
-                }
-                onChange={() => handleAnswerChange(opt)}
-              />
-              {opt}
-            </label>
-          ))}
+  /* ================= RENDER ================= */
+
+  if (strictMode && !isFullscreen && !submittedRef.current) {
+    return (
+      <div className="exam-fullscreen-blocker p-5 text-center mt-5">
+        <div className="card shadow-lg p-5 border-danger mx-auto" style={{ maxWidth: '600px' }}>
+          <h1 className="text-danger mb-4">⚠ Security Violation</h1>
+          <h3 className="mb-4">Fullscreen Mode Required</h3>
+          <p className="lead mb-5">
+            The admin has enabled strict proctoring for this exam.
+            You cannot proceed unless you are in **Full Screen** mode.
+          </p>
+          <p className="text-muted mb-4">
+            Violations Recorded: <strong>{violations}</strong> / 3
+            <br />
+            Exceeding limit will auto-submit your exam.
+          </p>
+          <button className="btn btn-danger btn-lg px-5 py-3 fw-bold" onClick={requestFullScreen}>
+            ENABLE FULLSCREEN TO CONTINUE
+          </button>
         </div>
-      </section>
+      </div>
+    );
+  }
 
-      {/* RIGHT PANEL */}
-      <aside className="exam-sidebar">
-        <h5>Questions</h5>
+  return (
+    <div className="exam-root">
 
-        <div className="question-palette">
-          {questions.map((_, idx) => {
-            const isAnswered = answers[idx] !== undefined;
-            const isReview = review.includes(idx);
-
-            let cls = "palette-btn";
-            if (isReview) cls += " review";
-            else if (isAnswered) cls += " answered";
-            else if (idx === current) cls += " active";
-
-            return (
-              <button
-                key={idx}
-                className={cls}
-                onClick={() => setCurrent(idx)}
-              >
-                {idx + 1}
-              </button>
-            );
-          })}
+      {/* TOP BAR */}
+      <header className="exam-topbar">
+        <div className="exam-title">
+          <strong>DSA</strong>
+          <span>Quiz</span>
         </div>
 
-        {/* LEGEND */}
-        <div className="palette-legend">
-          <div><span className="answered"></span> Answered</div>
-          <div><span className="review"></span> Review</div>
-          <div><span className="notvisited"></span> Not Visited</div>
+        <div className="exam-timer">
+          <span>⏱ Time Left: {formatTime(timeLeft)}</span>
         </div>
-      </aside>
+        <div className="exam-violations">
+          <span>⚠ Violations: {violations}</span>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT */}
+      <div className="exam-main">
+
+        {/* QUESTION AREA */}
+        <section className="exam-question">
+          <h4>Question {current + 1}</h4>
+          <p>{currentQuestion.question}</p>
+
+          <div className="exam-options">
+            {currentQuestion.options.map((opt) => (
+              <label key={opt} className="exam-option">
+                <input
+                  type={
+                    currentQuestion.type === "multiple"
+                      ? "checkbox"
+                      : "radio"
+                  }
+                  name={`q-${current}`}
+                  checked={
+                    currentQuestion.type === "multiple"
+                      ? answers[current]?.includes(opt)
+                      : answers[current] === opt
+                  }
+                  onChange={() => handleAnswerChange(opt)}
+                />
+                {opt}
+              </label>
+            ))}
+          </div>
+        </section>
+
+        {/* RIGHT PANEL */}
+        <aside className="exam-sidebar">
+          <h5>Questions</h5>
+
+          <div className="question-palette">
+            {questions.map((_, idx) => {
+              const isAnswered = answers[idx] !== undefined;
+              const isReview = review.includes(idx);
+
+              let cls = "palette-btn";
+              if (isReview) cls += " review";
+              else if (isAnswered) cls += " answered";
+              else if (idx === current) cls += " active";
+
+              return (
+                <button
+                  key={idx}
+                  className={cls}
+                  onClick={() => setCurrent(idx)}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* LEGEND */}
+          <div className="palette-legend">
+            <div><span className="answered"></span> Answered</div>
+            <div><span className="review"></span> Review</div>
+            <div><span className="notvisited"></span> Not Visited</div>
+          </div>
+        </aside>
+      </div>
+
+      {/* FOOTER */}
+      <footer className="exam-footer">
+        <button onClick={clearCurrentAnswer}>
+          Clear Answer
+        </button>
+
+        <button
+          onClick={() =>
+            setReview((prev) => (prev.includes(current) ? prev.filter((i) => i !== current) : [...prev, current]))
+          }
+        >
+          {review.includes(current) ? "Unmark Review" : "Review Later"}
+        </button>
+
+        <button
+          onClick={() => setCurrent((c) => (c < questions.length - 1 ? c + 1 : c))}
+          disabled={current === questions.length - 1}
+          className={current === questions.length - 1 ? "disabled-btn" : ""}
+        >
+          Save & Next
+        </button>
+
+        <button className="submit" onClick={handleReviewSubmit}>
+          Submit Exam
+        </button>
+      </footer>
     </div>
-
-    {/* FOOTER */}
-    <footer className="exam-footer">
-      <button onClick={clearCurrentAnswer}>
-        Clear Answer
-      </button>
-
-      <button
-        onClick={() =>
-          setReview((prev) => (prev.includes(current) ? prev.filter((i) => i !== current) : [...prev, current]))
-        }
-      >
-        {review.includes(current) ? "Unmark Review" : "Review Later"}
-      </button>
-
-      <button 
-        onClick={() => setCurrent((c) => (c < questions.length - 1 ? c + 1 : c))}
-        disabled={current === questions.length - 1}
-        className={current === questions.length - 1 ? "disabled-btn" : ""}
-      >
-        Save & Next
-      </button>
-
-      <button className="submit" onClick={handleReviewSubmit}>
-        Submit Exam
-      </button>
-    </footer>
-  </div>
-);
+  );
 
 };
 
