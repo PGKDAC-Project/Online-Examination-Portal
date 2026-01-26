@@ -1,16 +1,15 @@
-import axiosClient from "../axios/axiosClient";
+import adminAxios from "../axios/adminAxios";
 
 export const getAllUsers = async () => {
-    return await axiosClient.get("/users");
+    return await adminAxios.get("/admin/users");
 };
 
 export const getUserById = async (id) => {
-    return await axiosClient.get(`/users/${id}`);
+    return await adminAxios.get(`/admin/users/${id}`);
 };
 
 export const getUsersByRole = async (role) => {
-    // Assumes backend supports query param filtering
-    return await axiosClient.get(`/users?role=${role}`);
+    return await adminAxios.get(`/admin/users?role=${role}`);
 };
 
 export const getAllInstructors = async () => {

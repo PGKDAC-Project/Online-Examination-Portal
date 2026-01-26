@@ -10,6 +10,7 @@ namespace AdminServiceDotNET.Models
     {
         [Key]
         [Column("announcement_id")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         [Required]

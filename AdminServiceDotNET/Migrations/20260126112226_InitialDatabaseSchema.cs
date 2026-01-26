@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AdminServiceDotNET.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialAdminSchema : Migration
+    public partial class InitialDatabaseSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -45,15 +45,17 @@ namespace AdminServiceDotNET.Migrations
                 name: "audit_logs",
                 columns: table => new
                 {
-                    log_id = table.Column<string>(type: "varchar(255)", nullable: false)
+                    log_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    service_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    service_name = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    action_name = table.Column<string>(type: "longtext", nullable: false)
+                    action_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     user_email = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     user_role = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    details = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -77,6 +79,24 @@ namespace AdminServiceDotNET.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_batches", x => x.batch_id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "system_settings",
+                columns: table => new
+                {
+                    settings_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    maintenance_mode = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    tab_switch_detection = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    fullscreen_enforcement = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    exam_auto_submit = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    last_updated = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_system_settings", x => x.settings_id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -123,6 +143,9 @@ namespace AdminServiceDotNET.Migrations
 
             migrationBuilder.DropTable(
                 name: "batches");
+
+            migrationBuilder.DropTable(
+                name: "system_settings");
         }
     }
 }

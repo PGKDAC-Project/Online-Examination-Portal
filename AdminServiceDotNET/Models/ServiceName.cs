@@ -9,6 +9,9 @@
         QUESTION_SERVICE,    // Question CRUD
         RESULT_SERVICE,      // Evaluation, publish results
         ENROLLMENT_SERVICE,  // Student enrollments
-        ADMIN_SERVICE        // Logs, dashboards, system configs
+        ADMIN_SERVICE,       // Logs, dashboards, system configs
+        BATCH_SERVICE,
+        ANNOUNCEMENT_SERVICE,
+        SYSTEM_SERVICE
     }
 }

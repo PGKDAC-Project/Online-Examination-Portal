@@ -1,7 +1,8 @@
 import axiosClient from "../axios/axiosClient";
+import adminAxios from "../axios/adminAxios";
 
 export const getSystemLogs = async () => {
-  return await axiosClient.get("/logs");
+  return await adminAxios.get("/admin/logs");
 };
 
 export const getSystemAnalytics = async () => {
@@ -9,13 +10,13 @@ export const getSystemAnalytics = async () => {
 };
 
 export const createUser = async (user) => {
-  return await axiosClient.post("/users", user);
+  return await adminAxios.post("/admin/users", user);
 };
 
 export const updateUser = async (id, user) => {
-  return await axiosClient.put(`/users/${id}`, user);
+  return await adminAxios.put(`/admin/users/${id}`, user);
 };
 
 export const deleteUser = async (id) => {
-  return await axiosClient.delete(`/users/${id}`);
+  return await adminAxios.delete(`/admin/users/${id}`);
 };

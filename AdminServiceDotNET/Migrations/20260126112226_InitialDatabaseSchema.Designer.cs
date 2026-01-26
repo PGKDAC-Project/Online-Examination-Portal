@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdminServiceDotNET.Migrations
 {
     [DbContext(typeof(AdminDbContext))]
-    [Migration("20260124153552_InitialAdminSchema")]
-    partial class InitialAdminSchema
+    [Migration("20260126112226_InitialDatabaseSchema")]
+    partial class InitialDatabaseSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -79,18 +79,25 @@ namespace AdminServiceDotNET.Migrations
 
             modelBuilder.Entity("AdminServiceDotNET.Models.AuditLogs", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255)")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
                         .HasColumnName("log_id");
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("action_name");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("details");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -100,10 +107,11 @@ namespace AdminServiceDotNET.Migrations
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("service_name");
 
-                    b.Property<string>("userEmail")
+                    b.Property<string>("UserEmail")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("varchar(150)")
@@ -147,6 +155,38 @@ namespace AdminServiceDotNET.Migrations
                     b.HasIndex(new[] { "StartDate" }, "idx_batch_start_date");
 
                     b.ToTable("batches");
+                });
+
+            modelBuilder.Entity("AdminServiceDotNET.Models.SystemSettings", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("settings_id");
+
+                    b.Property<bool>("ExamAutoSubmit")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("exam_auto_submit");
+
+                    b.Property<bool>("FullscreenEnforcement")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("fullscreen_enforcement");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("last_updated");
+
+                    b.Property<bool>("MaintenanceMode")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("maintenance_mode");
+
+                    b.Property<bool>("TabSwitchDetection")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("tab_switch_detection");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("system_settings");
                 });
 #pragma warning restore 612, 618
         }

@@ -25,15 +25,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void sendResetPasswordLink(String email) {
-        User user = authRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("Invalid Email id"));
-        System.out.println("User: \n"+ user.toString());
+        User user = authRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid Email id"));
+        System.out.println("User: \n" + user.toString());
         String token = UUID.randomUUID().toString() + UUID.randomUUID().toString();
         user.setActivationToken(token);
         user.setActivationExpiry(LocalDateTime.now().plusMinutes(15));
         authRepository.save(user);
 
         // TODO: send email
-         emailService.sendResetPasswordLink(user.getEmail(), token);
+        emailService.sendResetPasswordLink(user.getEmail(), token);
     }
 
     @Override
@@ -41,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         User user = authRepository.findByActivationToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid token"));
         if (user.getActivationExpiry() == null ||
-            user.getActivationExpiry().isBefore(LocalDateTime.now())) {
+                user.getActivationExpiry().isBefore(LocalDateTime.now())) {
             throw new ResourceNotFoundException("Token expired");
         }
     }
@@ -51,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
         User user = authRepository.findByActivationToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid token"));
         if (user.getActivationExpiry() == null ||
-            user.getActivationExpiry().isBefore(LocalDateTime.now())) {
+                user.getActivationExpiry().isBefore(LocalDateTime.now())) {
             throw new ResourceNotFoundException("Token expired");
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));

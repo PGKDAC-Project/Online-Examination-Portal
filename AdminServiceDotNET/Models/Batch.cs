@@ -14,6 +14,7 @@ namespace AdminServiceDotNET.Models
         [Key]
         [Required]
         [Column("batch_id")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         [Required]

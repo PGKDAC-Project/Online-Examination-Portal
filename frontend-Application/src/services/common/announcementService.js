@@ -1,15 +1,15 @@
-import axiosClient from "../axios/axiosClient";
+import adminAxios from "../axios/adminAxios";
 
-const BASE_URL = "/announcements";
+const BASE_URL = "/admin/announcements";
 
 export const getAllAnnouncements = async () => {
-    return await axiosClient.get(BASE_URL);
+    return await adminAxios.get(BASE_URL);
 };
 
 export const createAnnouncement = async (data) => {
-    return await axiosClient.post(BASE_URL, data);
+    return await adminAxios.post(BASE_URL, data);
 };
 
 export const deleteAnnouncement = async (id) => {
-    return await axiosClient.delete(`${BASE_URL}/${id}`);
+    return await adminAxios.delete(`${BASE_URL}/${id}`);
 };

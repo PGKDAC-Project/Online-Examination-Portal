@@ -11,34 +11,29 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.oep.custom_exceptions.AuthenticationFailedException;
+import com.oep.custom_exceptions.ApiException;
+import com.oep.custom_exceptions.ConflictException;
+import com.oep.custom_exceptions.InvalidInputException;
 import com.oep.custom_exceptions.ResourceNotFoundException;
+import com.oep.custom_exceptions.AuthenticationFailedException;
 import com.oep.dtos.ApiResponse;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
-/*
- * = @ControllerAdvice - class level annotation + @ResponseBody implicitly added
- * on all exception handling methods. Use @ControllerAdvice - in MVC controller
- * Use @RestControllerAdvice - in RESTful web service - Declares a spring bean -
- * containing global exc handling advice (GlobalExceptionHandler is giving a
- * common advice to all rest controllers - You don't add recurring exc handling
- * logic (try-catch) - I will supply it for you ! - Based on interceptor (proxy
- * - Middleware - Node) pattern
- * 
- */
 public class GlobalExceptionHandler {
-	/*
-	 * To declare exc handling method - add method level annotation
-	 */
-	// catch-all
+
+	@ExceptionHandler(ApiException.class)
+	public ResponseEntity<?> handleApiException(ApiException e) {
+		return ResponseEntity.status(e.getStatus())
+				.body(new ApiResponse("Failed", e.getMessage()));
+	}
+
 	@ExceptionHandler(Exception.class)
-	// @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR )
 	public ResponseEntity<?> handleException(Exception e) {
 		System.err.println("Global Exception Caught: " + e.getClass().getName() + " - " + e.getMessage());
 		e.printStackTrace();
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body(new ApiResponse("Failed", "An internal error occurred: " + e.getMessage()));
+				.body(new ApiResponse("Error", "An unexpected error occurred: " + e.getMessage()));
 	}
 
 	@ExceptionHandler(NoResourceFoundException.class)
@@ -47,41 +42,14 @@ public class GlobalExceptionHandler {
 				.body(new ApiResponse("Failed", "Endpoint not found: " + e.getResourcePath()));
 	}
 
-	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException e) {
-		System.out.println("in catch - ResourceNotFoundException");
-		e.printStackTrace();
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse("Failed", e.getMessage()));
-	}
-
-	@ExceptionHandler(AuthenticationFailedException.class)
-	public ResponseEntity<?> handleAuthenticationFailedException(AuthenticationFailedException e) {
-		System.out.println("in catch - AuthenticationFailedException");
-		e.printStackTrace();
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse("Failed", e.getMessage()));
-	}
-
-	/*
-	 * To handle - MethodArgNotValid - Trigger - @Valid
-	 */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-		System.out.println("in catch - MethodArgumentNotValidException");
-		e.printStackTrace();
-		// 1. Get List of rejected fields
 		List<FieldError> list = e.getFieldErrors();
-		// 2. Convert list of FieldErrors -> Map<Key - field name , Value - err mesg>
-		/*
-		 * Map<String, String> map=new HashMap<>(); for(FieldError field : list)
-		 * map.put(field.getField(), field.getDefaultMessage());
-		 * 
-		 * return ResponseEntity.status(HttpStatus.BAD_REQUEST) .body(map);
-		 */
+		String errorMessage = list.stream()
+				.map(FieldError::getDefaultMessage)
+				.collect(Collectors.joining(", "));
 
-		Map<String, String> map = list.stream()
-				.collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage,
-						(v1, v2) -> v1 + " " + v2));
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(new ApiResponse("ValidationFailed", errorMessage));
 	}
-
 }

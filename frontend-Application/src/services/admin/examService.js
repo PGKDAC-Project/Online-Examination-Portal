@@ -1,18 +1,17 @@
-import axiosClient from "../axios/axiosClient";
+import adminAxios from "../axios/adminAxios";
 
 export const getAllExams = async () => {
-    return await axiosClient.get("/exams");
+    return await adminAxios.get("/admin/exams");
 };
 
 export const getExamById = async (id) => {
-    return await axiosClient.get(`/exams/${id}`);
+    return await adminAxios.get(`/admin/exams/${id}`);
 };
 
 export const createExam = async (exam) => {
-    return await axiosClient.post("/exams", exam);
+    return await adminAxios.post("/admin/exams", exam);
 };
 
-// Admin might force create/delete exams, though usually Instructor job
 export const deleteExam = async (id) => {
-    return await axiosClient.delete(`/exams/${id}`);
+    return await adminAxios.delete(`/admin/exams/${id}`);
 };

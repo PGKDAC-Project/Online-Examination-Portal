@@ -2,14 +2,16 @@
 {
     public enum AuditAction
     {
-        LOGIN_SUCCESS,
         CREATE_USER,
+        UPDATE_USER,
+        DELETE_USER,
         CREATE_COURSE,
+        RESET_PASSWORD,
         ASSIGN_INSTRUCTOR,
-        CREATE_EXAM,
-        SUBMIT_EXAM,
-        EVALUATE_EXAM,
-        ENROLL_STUDENT,
-        RESET_PASSWORD
+        POST_ANNOUNCEMENT,
+        EXPORT_LOGS,
+        CREATE_BATCH,
+        LOGIN,
+        LOGOUT
     }
 }

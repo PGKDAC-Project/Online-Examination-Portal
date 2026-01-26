@@ -1,7 +1,14 @@
 package com.oep.custom_exceptions;
 
+import org.springframework.http.HttpStatus;
+import lombok.Getter;
+
+@Getter
 public class ApiException extends RuntimeException {
-	public ApiException(String mesg) {
-		super(mesg);
+	private final HttpStatus status;
+
+	public ApiException(String message, HttpStatus status) {
+		super(message);
+		this.status = status;
 	}
 }

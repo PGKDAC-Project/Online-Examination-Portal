@@ -14,6 +14,7 @@ namespace AdminServiceDotNET.Models
         public DbSet<AuditLogs> AuditLogs { get; set; }
         public DbSet<Batch> Batches { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
+        public DbSet<SystemSettings> SystemSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

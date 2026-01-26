@@ -1,9 +1,9 @@
-import axiosClient from "../axios/axiosClient";
+import adminAxios from "../axios/adminAxios";
 
 export const getSystemSettings = async () => {
-    return await axiosClient.get("/settings");
+    return await adminAxios.get("/admin/settings");
 };
 
 export const updateSystemSettings = async (settings) => {
-    return await axiosClient.put("/settings", settings);
+    return await adminAxios.put("/admin/settings", settings);
 };

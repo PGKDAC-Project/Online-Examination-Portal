@@ -1,0 +1,35 @@
+package com.oep.service;
+
+import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.oep.entities.ExamResults;
+import com.oep.repository.ResultRepository;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class ResultServiceImpl implements ResultService {
+    private final ResultRepository resultRepository;
+
+    @Override
+    public List<ExamResults> getAllResults() {
+        return resultRepository.findAll();
+    }
+
+    @Override
+    public List<ExamResults> getResultsByStudent(Long studentId) {
+        return resultRepository.findByUserId(studentId);
+    }
+
+    @Override
+    public List<ExamResults> getResultsByExam(Long examId) {
+        return resultRepository.findByExamId(examId);
+    }
+
+    @Override
+    public ExamResults submitResult(ExamResults result) {
+        return resultRepository.save(result);
+    }
+}

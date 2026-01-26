@@ -37,6 +37,7 @@ public class AuthController {
                 .authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         String token = jwtUtils.generateToken(principal);
+        System.out.println("Generated JWT Token: " + token);
         Long userId = principal.getUserId();
         String role = principal.getUserRole();
         if (role != null && role.startsWith("ROLE_")) {
@@ -45,6 +46,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResp(userId, token, role, "Successfully logged in"));
     }
 
+    
     // forgot Password
     @PostMapping("/forgot-password")
     @Operation(description = "Send reset password link")
@@ -69,6 +71,5 @@ public class AuthController {
         authService.resetPassword(dto.getToken(), dto.getNewPassword());
         return ResponseEntity.ok(new ApiResponse("success", "Password reset successfully"));
     }
-
 
 }
