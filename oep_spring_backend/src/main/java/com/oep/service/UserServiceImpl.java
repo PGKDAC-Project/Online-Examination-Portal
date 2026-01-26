@@ -2,7 +2,9 @@ package com.oep.service;
 
 import java.util.UUID;
 
+import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
+import com.oep.dtos.UserResponseDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,13 +49,22 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public java.util.List<User> getAllUsers() {
-		return userRepository.findAll();
+	public java.util.List<UserResponseDto> getAllUsers() {
+		return userRepository.findAll().stream()
+				.map(user -> {
+					UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
+					dto.setName(user.getUserName()); // manual fix for field mismatch
+					return dto;
+				})
+				.collect(Collectors.toList());
 	}
 
 	@Override
-	public User getUserById(Long id) {
-		return userRepository.findById(id).orElseThrow(() -> new InvalidInputException("User not found"));
+	public UserResponseDto getUserById(Long id) {
+		User user = userRepository.findById(id).orElseThrow(() -> new InvalidInputException("User not found"));
+		UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
+		dto.setName(user.getUserName());
+		return dto;
 	}
 
 	@Override

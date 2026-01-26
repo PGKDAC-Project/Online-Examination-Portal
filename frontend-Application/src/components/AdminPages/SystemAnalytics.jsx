@@ -171,8 +171,8 @@ const SystemAnalytics = () => {
         <div className="col-lg-8">
           <div className="card-custom p-4 h-100 shadow-sm border-0">
             <h5 className="fw-bold mb-4">Batch Distribution (Students)</h5>
-            <div style={{ height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', height: 300, minHeight: 300 }}>
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <BarChart data={analyticsData.batchAnalytics}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
@@ -190,8 +190,8 @@ const SystemAnalytics = () => {
         <div className="col-lg-4">
           <div className="card-custom p-4 h-100 shadow-sm border-0">
             <h5 className="fw-bold mb-4">User Roles</h5>
-            <div style={{ height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', height: 300, minHeight: 300 }}>
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <PieChart>
                   <Pie
                     data={analyticsData.userDistribution}
@@ -221,8 +221,8 @@ const SystemAnalytics = () => {
         <div className="col-lg-6">
           <div className="card-custom p-4 shadow-sm border-0">
             <h5 className="fw-bold mb-4">Exams Conducted (Monthly Trend)</h5>
-            <div style={{ height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', height: 300, minHeight: 300 }}>
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <LineChart data={analyticsData.examTrends}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
@@ -240,8 +240,8 @@ const SystemAnalytics = () => {
         <div className="col-lg-6">
           <div className="card-custom p-4 shadow-sm border-0">
             <h5 className="fw-bold mb-4">Results Distribution</h5>
-            <div style={{ height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', height: 300, minHeight: 300 }}>
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <BarChart data={analyticsData.resultDistribution}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />

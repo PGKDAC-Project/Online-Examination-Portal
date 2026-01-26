@@ -20,13 +20,13 @@ namespace AdminServiceDotNET.Service
         public async Task<IEnumerable<ExamDto>> GetAllExamsAsync(string jwtToken)
         {
             AddAuth(jwtToken);
-            return await client.GetFromJsonAsync<IEnumerable<ExamDto>>("http://localhost:8080/oep/exams") ?? new List<ExamDto>();
+            return await client.GetFromJsonAsync<IEnumerable<ExamDto>>("http://127.0.0.1:8080/oep/admin/exams") ?? new List<ExamDto>();
         }
 
         public async Task DeleteExamAsync(long id, string jwtToken)
         {
             AddAuth(jwtToken);
-            var response = await client.DeleteAsync($"http://localhost:8080/oep/exams/{id}");
+            var response = await client.DeleteAsync($"http://127.0.0.1:8080/oep/admin/exams/{id}");
             response.EnsureSuccessStatusCode();
         }
     }

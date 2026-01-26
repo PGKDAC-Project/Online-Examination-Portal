@@ -8,6 +8,8 @@ import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderBy;
@@ -42,5 +44,8 @@ public class Courses extends BaseEntity {
 	@CollectionTable(name = "course_outcomes", joinColumns = @JoinColumn(name = "course_id"))
 	@Column(name = "outcome_text")
 	private List<String> outcomes = new ArrayList<>();
+	@Enumerated(EnumType.STRING)
+	@Column(length = 20)
+	private Status status = Status.ACTIVE;
 
 }

@@ -20,7 +20,7 @@ public class ResultServiceImpl implements ResultService {
 
     @Override
     public List<ExamResults> getResultsByStudent(Long studentId) {
-        return resultRepository.findByUserId(studentId);
+        return resultRepository.findByStudentId(studentId);
     }
 
     @Override

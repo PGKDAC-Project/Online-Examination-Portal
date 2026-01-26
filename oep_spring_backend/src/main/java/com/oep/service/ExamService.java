@@ -17,4 +17,6 @@ public interface ExamService {
     Exam updateExam(Long id, Exam exam);
 
     void deleteExam(Long id);
+
+    boolean verifyPassword(Long examId, String password);
 }

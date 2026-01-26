@@ -142,7 +142,7 @@ const CourseGovernance = () => {
       courseCode: formData.courseCode,
       title: formData.title,
       description: formData.description,
-      instructorDetails: selectedInstructor, // Pass full object as per entity expectation usually, or handle in backend. Mock expects object.
+      instructorId: Number(formData.instructorId),
       syllabus: formData.syllabus.map(s => ({
         ...s,
         estimatedHrs: Number(s.estimatedHrs),

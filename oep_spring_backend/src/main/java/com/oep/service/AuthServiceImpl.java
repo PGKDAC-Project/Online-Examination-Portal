@@ -1,7 +1,6 @@
 package com.oep.service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,6 +57,14 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         user.setActivationToken(null);
         user.setActivationExpiry(null);
+        authRepository.save(user);
+    }
+
+    @Override
+    public void updateLastLogin(String email) {
+        User user = authRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        user.setLastLogin(LocalDateTime.now());
         authRepository.save(user);
     }
 }

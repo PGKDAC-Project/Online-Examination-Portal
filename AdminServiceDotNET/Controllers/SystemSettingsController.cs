@@ -17,7 +17,7 @@ namespace AdminServiceDotNET.Controllers
         public SystemSettingsController(ISystemSettingsService service, IAuditLogService auditLogService)
         {
             systemSettingService = service;
-            auditLogService = auditLogService;
+            this.auditLogService = auditLogService;
         }
 
         [HttpGet]

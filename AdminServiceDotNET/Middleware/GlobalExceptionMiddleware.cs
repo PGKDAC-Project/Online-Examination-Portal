@@ -47,7 +47,7 @@ namespace AdminServiceDotNET.Middleware
             }
             var error = new ApiResponse
             {
-                Status = status >= HttpStatusCode.InternalServerError ? "Error" : "Failed",
+                Status = (int)status,
                 Message = message
             };
             context.Response.ContentType = "application/json";

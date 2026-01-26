@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.oep.entities.Exam;
 import com.oep.repository.ExamRepository;
 import com.oep.custom_exceptions.ResourceNotFoundException;
+import com.oep.custom_exceptions.InvalidInputException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -49,13 +50,15 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public Exam updateExam(Long id, Exam examDetails) {
         Exam exam = getExamById(id);
-        exam.setTitle(examDetails.getTitle());
-        exam.setDescription(examDetails.getDescription());
+        exam.setExamTitle(examDetails.getExamTitle());
         exam.setScheduledDate(examDetails.getScheduledDate());
-        exam.setDurationInMinutes(examDetails.getDurationInMinutes());
+        exam.setStartTime(examDetails.getStartTime());
+        exam.setEndTime(examDetails.getEndTime());
+        exam.setDuration(examDetails.getDuration());
         exam.setTotalMarks(examDetails.getTotalMarks());
         exam.setPassingMarks(examDetails.getPassingMarks());
         exam.setStatus(examDetails.getStatus());
+        exam.setExamPassword(examDetails.getExamPassword());
         return examRepository.save(exam);
     }
 
@@ -63,5 +66,14 @@ public class ExamServiceImpl implements ExamService {
     public void deleteExam(Long id) {
         Exam exam = getExamById(id);
         examRepository.delete(exam);
+    }
+
+    @Override
+    public boolean verifyPassword(Long examId, String password) {
+        Exam exam = getExamById(examId);
+        if (exam.getExamPassword() == null || exam.getExamPassword().isEmpty()) {
+            return true; // No password set
+        }
+        return exam.getExamPassword().equals(password);
     }
 }

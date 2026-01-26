@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getSystemSettings } from '../../services/admin/systemSettingsService';
+import { getCurrentUser } from '../../services/auth/authService';
 import { FaExclamationTriangle } from 'react-icons/fa';
 
 const MaintenanceGuard = ({ children }) => {
@@ -11,10 +12,16 @@ const MaintenanceGuard = ({ children }) => {
         const isPublic = publicRoutes.includes(window.location.pathname);
 
         const checkMaintenance = async () => {
-            // If we are on a public route, we might skip the check to avoid 403 logs 
-            // if the backend requires authentication for /settings.
-            // However, usually maintenance mode should be public. 
-            // Since our current backend returns 403, we skip for now.
+            const user = getCurrentUser();
+            const isAdmin = user && String(user.role || "").toLowerCase() === "admin";
+
+            // If user is Admin, we don't block them regardless of maintenance mode
+            if (isAdmin) {
+                setMaintenance(false);
+                setLoading(false);
+                return;
+            }
+
             if (isPublic && !localStorage.getItem('token')) {
                 setLoading(false);
                 return;

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace AdminServiceDotNET.Dtos
 {
     public class CourseDto
@@ -8,5 +10,6 @@ namespace AdminServiceDotNET.Dtos
         public string Description { get; set; }
         public long InstructorId { get; set; } // Simplified for gateway
         public string Status { get; set; }
+        public List<SyllabusDto> Syllabus { get; set; } = new List<SyllabusDto>();
     }
 }

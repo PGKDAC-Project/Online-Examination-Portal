@@ -8,7 +8,7 @@ namespace AdminServiceDotNET.Controllers
 {
     [ApiController]
     [Route("admin/exams")]
-    [Authorize(Roles = "ROLE ADMIN")]
+    [Authorize(Roles = "ROLE_ADMIN")]
     public class ExamController : ControllerBase
     {
         private readonly IExamService  service;

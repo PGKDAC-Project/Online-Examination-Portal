@@ -8,7 +8,7 @@ namespace AdminServiceDotNET.Controllers
 {
     [ApiController]
     [Route("admin/courses")]
-    [Authorize(Roles = "ROLE ADMIN")]
+    [Authorize(Roles = "ROLE_ADMIN")]
     public class CourseController : ControllerBase
     {
         private readonly ICourseService  courseService;

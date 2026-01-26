@@ -20,34 +20,34 @@ namespace AdminServiceDotNET.Service
         public async Task<IEnumerable<CourseDto>> GetAllCoursesAsync(string jwtToken)
         {
             AddAuth(jwtToken);
-            return await client.GetFromJsonAsync<IEnumerable<CourseDto>>("http://localhost:8080/oep/courses") ?? new List<CourseDto>();
+            return await client.GetFromJsonAsync<IEnumerable<CourseDto>>("http://127.0.0.1:8080/oep/admin/courses") ?? new List<CourseDto>();
         }
 
         public async Task CreateCourseAsync(CourseDto dto, string jwtToken)
         {
             AddAuth(jwtToken);
-            var response = await client.PostAsJsonAsync("http://localhost:8080/oep/courses", dto);
+            var response = await client.PostAsJsonAsync("http://127.0.0.1:8080/oep/admin/courses", dto);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task UpdateCourseAsync(long id, CourseDto dto, string jwtToken)
         {
             AddAuth(jwtToken);
-            var response = await client.PutAsJsonAsync($"http://localhost:8080/oep/courses/{id}", dto);
+            var response = await client.PutAsJsonAsync($"http://127.0.0.1:8080/oep/admin/courses/{id}", dto);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task UpdateCourseStatusAsync(long id, string status, string jwtToken)
         {
             AddAuth(jwtToken);
-            var response = await client.PatchAsJsonAsync($"http://localhost:8080/oep/courses/{id}/status", new { status });
+            var response = await client.PatchAsJsonAsync($"http://127.0.0.1:8080/oep/admin/courses/{id}/status", new { status });
             response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteCourseAsync(long id, string jwtToken)
         {
             AddAuth(jwtToken);
-            var response = await client.DeleteAsync($"http://localhost:8080/oep/courses/{id}");
+            var response = await client.DeleteAsync($"http://127.0.0.1:8080/oep/admin/courses/{id}");
             response.EnsureSuccessStatusCode();
         }
     }

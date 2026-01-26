@@ -9,10 +9,6 @@ function StudentOverview() {
     const authUser = getCurrentUser();
     const [announcements, setAnnouncements] = useState([]);
 
-    useEffect(() => {
-        fetchAnnouncements();
-    }, []);
-
     const fetchAnnouncements = async () => {
         try {
             const data = await getAllAnnouncements();
@@ -29,6 +25,10 @@ function StudentOverview() {
             console.error("Failed to load announcements", err);
         }
     };
+
+    useEffect(() => {
+        fetchAnnouncements();
+    }, []);
 
     const studentName = authUser?.name ?? "Student";
     const studentId = authUser?.id ? `S${String(authUser.id).padStart(5, "0")}` : "S00000";

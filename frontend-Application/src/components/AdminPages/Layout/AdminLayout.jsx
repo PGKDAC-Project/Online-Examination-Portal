@@ -14,13 +14,14 @@ import {
   FaSun,
   FaMoon,
   FaSignOutAlt,
-  FaBullhorn
+  FaBullhorn,
+  FaTimes
 } from "react-icons/fa";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 992); // Default open on desktop, closed on mobile
 
   const authUser = useMemo(() => {
     return getCurrentUser();
@@ -30,6 +31,13 @@ const AdminLayout = () => {
     document.body.className = theme;
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Close sidebar on route change on mobile
+  useEffect(() => {
+    if (window.innerWidth <= 992) {
+      setSidebarOpen(false);
+    }
+  }, [navigate]);
 
   // Strict redirect using conditional rendering (prevents flash of content)
   if (!authUser) {
@@ -57,8 +65,19 @@ const AdminLayout = () => {
 
   return (
     <div className={`admin-wrapper ${theme} ${sidebarOpen ? "" : "collapsed"}`}>
+      {/* Mobile Overlay */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       <aside className="admin-sidebar">
-        <h2>Admin Panel</h2>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2>Admin Panel</h2>
+          <button className="btn btn-link text-white d-lg-none p-0" onClick={() => setSidebarOpen(false)}>
+            <FaTimes size={24} />
+          </button>
+        </div>
 
         <NavLink to="/admin/dashboard"><FaChartBar /> Overview</NavLink>
         <NavLink to="/admin/announcements"><FaBullhorn /> Announcements</NavLink>

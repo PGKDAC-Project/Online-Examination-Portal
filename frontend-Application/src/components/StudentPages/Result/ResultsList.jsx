@@ -52,7 +52,7 @@ const ResultsList = () => {
                                     </div>
 
                                     <Link
-                                        to={`/student/results/${examId}`}
+                                        to={`/student/results/${result.examId || result.id}`}
                                         className="btn btn-outline-primary w-100"
                                     >
                                         View Detailed Scorecard

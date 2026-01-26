@@ -9,6 +9,9 @@ import com.oep.service.CourseService;
 import com.oep.service.EnrollmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import com.oep.dtos.CourseRequestDto;
+import java.util.Map;
+import com.oep.dtos.ApiResponse;
 
 @RestController
 @Validated
@@ -45,7 +48,7 @@ public class CourseController {
 	@Operation(description = "Enroll student in course")
 	public ResponseEntity<?> enrollCourse(@PathVariable Long courseId, @PathVariable Long studentId) {
 		enrollmentService.enrollStudent(studentId, courseId);
-		return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Enrolled successfully"));
+		return ResponseEntity.ok(new ApiResponse("success", "Enrolled successfully"));
 	}
 
 	@GetMapping("/courses/{id}")
@@ -56,14 +59,23 @@ public class CourseController {
 
 	@PostMapping("/admin/courses")
 	@Operation(description = "Admin create course")
-	public ResponseEntity<Courses> createCourse(@RequestBody Courses course) {
+	public ResponseEntity<Courses> createCourse(@RequestBody CourseRequestDto course) {
 		return ResponseEntity.ok(courseService.createCourse(course));
 	}
 
 	@PutMapping("/admin/courses/{id}")
 	@Operation(description = "Admin update course")
-	public ResponseEntity<Courses> updateCourse(@PathVariable Long id, @RequestBody Courses course) {
+	public ResponseEntity<Courses> updateCourse(@PathVariable Long id, @RequestBody CourseRequestDto course) {
 		return ResponseEntity.ok(courseService.updateCourse(id, course));
+	}
+
+	@PatchMapping("/admin/courses/{id}/status")
+	@Operation(description = "Admin update course status")
+	public ResponseEntity<?> updateCourseStatus(@PathVariable Long id,
+			@RequestBody Map<String, String> payload) {
+		String status = payload.get("status");
+		courseService.updateCourseStatus(id, status);
+		return ResponseEntity.ok(new ApiResponse("success", "Status updated successfully"));
 	}
 
 	@DeleteMapping("/admin/courses/{id}")

@@ -20,20 +20,20 @@ namespace AdminServiceDotNET.Service
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync(string jwtToken)
         {
             AddAuth(jwtToken);
-            return await client.GetFromJsonAsync<IEnumerable<UserDto>>("http://localhost:8080/oep/admin/users") ?? new List<UserDto>();
+            return await client.GetFromJsonAsync<IEnumerable<UserDto>>("http://127.0.0.1:8080/oep/admin/users") ?? new List<UserDto>();
         }
 
         public async Task<UserDto?> GetUserByIdAsync(long id, string jwtToken)
         {
             AddAuth(jwtToken);
-            return await client.GetFromJsonAsync<UserDto>($"http://localhost:8080/oep/admin/users/{id}");
+            return await client.GetFromJsonAsync<UserDto>($"http://127.0.0.1:8080/oep/admin/users/{id}");
         }
 
         public async Task CreateUser(UserDto dto, string jwtToken)
         {
             AddAuth(jwtToken);
             var response = await client.PostAsJsonAsync(
-                "http://localhost:8080/oep/admin/users",
+                "http://127.0.0.1:8080/oep/admin/users",
                  dto
             );
             if (!response.IsSuccessStatusCode)
@@ -44,14 +44,14 @@ namespace AdminServiceDotNET.Service
         public async Task UpdateUserAsync(long id, UserDto dto, string jwtToken)
         {
             AddAuth(jwtToken);
-            var response = await client.PutAsJsonAsync($"http://localhost:8080/oep/admin/users/{id}", dto);
+            var response = await client.PutAsJsonAsync($"http://127.0.0.1:8080/oep/admin/users/{id}", dto);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteUserAsync(long id, string jwtToken)
         {
             AddAuth(jwtToken);
-            var response = await client.DeleteAsync($"http://localhost:8080/oep/admin/users/{id}");
+            var response = await client.DeleteAsync($"http://127.0.0.1:8080/oep/admin/users/{id}");
             response.EnsureSuccessStatusCode();
         }
     }

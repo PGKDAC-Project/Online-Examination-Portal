@@ -149,7 +149,7 @@ const UserManagement = () => {
 
           <tbody>
             {pageData.map(u => (
-              <tr key={u.id}>
+              <tr key={u.id || u.email}>
                 <td>
                   <div className="fw-medium">{u.name}</div>
                   <small className="text-muted">{u.email}</small>
@@ -172,7 +172,7 @@ const UserManagement = () => {
               </tr>
             ))}
             {pageData.length === 0 && (
-              <tr>
+              <tr key="no-users">
                 <td colSpan="6" className="text-center p-5">No users found</td>
               </tr>
             )}

@@ -1,6 +1,7 @@
 package com.oep.controller;
 
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.oep.entities.Exam;
@@ -37,7 +38,6 @@ public class ExamController {
     @GetMapping("/student/exams/available/{studentId}")
     @Operation(description = "Discovery for available exams")
     public ResponseEntity<List<Exam>> getAvailableExams(@PathVariable Long studentId) {
-        // Shared logic with getStudentExams for now, or could filter by upcoming
         return ResponseEntity.ok(examService.getExamsByStudent(studentId));
     }
 
@@ -71,5 +71,33 @@ public class ExamController {
     public ResponseEntity<?> reportViolation(@PathVariable Long examId, @RequestBody ExamViolation violation) {
         violationRepository.save(violation);
         return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Violation reported"));
+    }
+
+    @PostMapping("/student/exams/{examId}/verify-password")
+    @Operation(description = "Verify exam password before starting")
+    public ResponseEntity<?> verifyPassword(@PathVariable Long examId, @RequestBody Map<String, String> payload) {
+        String password = payload.get("password");
+        boolean isValid = examService.verifyPassword(examId, password);
+        if (isValid) {
+            return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Password verified"));
+        } else {
+            return ResponseEntity.status(401).body(new com.oep.dtos.ApiResponse("failed", "Invalid exam password"));
+        }
+    }
+
+    @PostMapping("/student/exams/{examId}/submissions")
+    @Operation(description = "Handle exam submission (or start check if password provided)")
+    public ResponseEntity<?> handleSubmission(@PathVariable Long examId, @RequestBody Map<String, Object> payload) {
+        // If password is provided in body, treat as start verification
+        if (payload.containsKey("password")) {
+            String password = (String) payload.get("password");
+            if (examService.verifyPassword(examId, password)) {
+                return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Exam access granted"));
+            } else {
+                return ResponseEntity.status(401).body(new com.oep.dtos.ApiResponse("failed", "Invalid exam password"));
+            }
+        }
+        // Handle actual submission logic here if needed, or redirect to results
+        return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Submission received"));
     }
 }

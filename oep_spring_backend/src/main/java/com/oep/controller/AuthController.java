@@ -43,10 +43,10 @@ public class AuthController {
         if (role != null && role.startsWith("ROLE_")) {
             role = role.substring(5).toLowerCase();
         }
+        authService.updateLastLogin(dto.getEmail());
         return ResponseEntity.ok(new AuthResp(userId, token, role, "Successfully logged in"));
     }
 
-    
     // forgot Password
     @PostMapping("/forgot-password")
     @Operation(description = "Send reset password link")

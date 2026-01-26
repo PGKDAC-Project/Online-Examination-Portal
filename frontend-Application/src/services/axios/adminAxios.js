@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create Axios Instance for .NET Admin Service
 const adminAxios = axios.create({
-    baseURL: "http://localhost:7097", // .NET Admin Service Port
+    baseURL: "http://127.0.0.1:7097", // .NET Admin Service Port
     timeout: 30000,
     headers: {
         "Content-Type": "application/json",

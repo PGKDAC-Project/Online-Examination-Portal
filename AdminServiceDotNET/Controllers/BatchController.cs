@@ -24,8 +24,17 @@ namespace AdminServiceDotNET.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BatchDto>>> GetBatches()
         {
-            var batches = await batchService.GetAllBatchesAsync();
-            return Ok(batches);
+            try
+            {
+                var batches = await batchService.GetAllBatchesAsync();
+                return Ok(batches);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting batches: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
         }
 
         [HttpGet("{id}")]

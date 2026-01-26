@@ -8,9 +8,9 @@ public interface UserService {
 
 	void createUser(CreateUserDto dto);
 
-	java.util.List<com.oep.entities.User> getAllUsers();
+	java.util.List<com.oep.dtos.UserResponseDto> getAllUsers();
 
-	com.oep.entities.User getUserById(Long id);
+	com.oep.dtos.UserResponseDto getUserById(Long id);
 
 	void updateUser(Long id, CreateUserDto dto);
 

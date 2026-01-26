@@ -22,6 +22,69 @@ const AttemptExam = ({ duration = 60 }) => {
   const [timeLeft, setTimeLeft] = useState(duration * 60);
   const [isReviewing, setIsReviewing] = useState(false);
 
+  /* ================= SUBMIT LOGIC ================= */
+  const submittedRef = useRef(false);
+
+  const submitExam = useCallback(() => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    toast.success("Exam submitted");
+    navigate("/student/exams");
+  }, [navigate]);
+
+  const autoSubmit = useCallback(() => {
+    toast.warning("Exam auto-submitted due to violations");
+    submitExam();
+  }, [submitExam]);
+
+  /* ================= SECURITY HOOKS ================= */
+  const { violations } = useExamSecurity(examId, autoSubmit);
+  useFullscreenEnforcement(examId, autoSubmit);
+
+  /* ================= TIMER ================= */
+  useEffect(() => {
+    if (loading || isReviewing || timeLeft <= 0) {
+      if (!loading && !isReviewing && timeLeft <= 0) {
+        submitExam();
+      }
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, submitExam, loading, isReviewing]);
+
+  /* ================= BLOCK ESC / F11 ================= */
+  useEffect(() => {
+    const blockKeys = (e) => {
+      if (e.key === "Escape" || e.key === "F11") {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", blockKeys);
+    return () => document.removeEventListener("keydown", blockKeys);
+  }, []);
+
+  /* ================= FULLSCREEN BLOCKER STATE ================= */
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [strictMode, setStrictMode] = useState(false);
+
+  useEffect(() => {
+    const settings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+    setStrictMode(!!settings.fullscreenEnforcement);
+
+    const checkFull = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', checkFull);
+    checkFull();
+
+    return () => document.removeEventListener('fullscreenchange', checkFull);
+  }, []);
+
+  /* ================= LOAD QUESTIONS ================= */
   useEffect(() => {
     if (!examPassword) {
       toast.error("Access denied. Please enter exam password.");
@@ -32,7 +95,6 @@ const AttemptExam = ({ duration = 60 }) => {
     const loadQuestions = async () => {
       try {
         const response = await fetchExamQuestions(examId, examPassword);
-        // Assumes response.questions is the array, or response is the array
         const qList = Array.isArray(response) ? response : (response.questions || []);
         setQuestions(qList);
       } catch (err) {
@@ -45,68 +107,22 @@ const AttemptExam = ({ duration = 60 }) => {
     loadQuestions();
   }, [examId, examPassword, navigate]);
 
-  if (loading) return <div className="p-5 text-center">Loading exam questions...</div>;
-
-  /* ================= SUBMIT LOGIC ================= */
-  const submittedRef = useRef(false);
-
-  const submitExam = useCallback(() => {
-    if (submittedRef.current) return;
-    submittedRef.current = true;
-    toast.success("Exam submitted");
-    navigate("/student/exams");
-  }, [navigate]);
-
   const handleReviewSubmit = () => {
     setIsReviewing(true);
   };
 
-  const autoSubmit = useCallback(() => {
-    toast.warning("Exam auto-submitted due to violations");
-    submitExam();
-  }, [submitExam]);
+  const requestFullScreen = () => {
+    document.documentElement.requestFullscreen().catch(err => {
+      toast.error("Could not enter fullscreen mode: " + err.message);
+    });
+  };
 
-  /* ================= SECURITY HOOKS ================= */
-
-  const { violations } = useExamSecurity(examId, (reason) => autoSubmit(reason));
-  useFullscreenEnforcement(examId, (reason) => autoSubmit(reason));
-
-
-  /* ================= TIMER ================= */
-
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      submitExam();
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft, submitExam]);
-
-  /* ================= BLOCK ESC / F11 ================= */
-
-  useEffect(() => {
-    const blockKeys = (e) => {
-      if (e.key === "Escape" || e.key === "F11") {
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener("keydown", blockKeys);
-    return () => document.removeEventListener("keydown", blockKeys);
-  }, []);
-
-  /* ================= GUARD ================= */
+  if (loading) return <div className="p-5 text-center">Loading exam questions...</div>;
 
   if (!questions.length) {
     return <h3>No questions available</h3>;
   }
 
-  /* ================= REVIEW MODE ================= */
   if (isReviewing) {
     return (
       <ReviewAnswers
@@ -129,8 +145,6 @@ const AttemptExam = ({ duration = 60 }) => {
     return <div>Error: Question not found</div>;
   }
 
-  /* ================= ANSWER HANDLING ================= */
-
   const handleAnswerChange = (option) => {
     if (currentQuestion.type === "multiple") {
       const prev = answers[current] || [];
@@ -152,7 +166,6 @@ const AttemptExam = ({ duration = 60 }) => {
     });
   };
 
-  /* ================Time Format===============*/
   const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -162,32 +175,6 @@ const AttemptExam = ({ duration = 60 }) => {
       ? `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
       : `${m}:${s.toString().padStart(2, "0")}`;
   };
-
-
-  /* ================= RENDER ================= */
-
-  /* ================= FULLSCREEN BLOCKER ================= */
-  const [isFullscreen, setIsFullscreen] = useState(false); // Default false
-  const [strictMode, setStrictMode] = useState(false);
-
-  useEffect(() => {
-    const settings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
-    setStrictMode(!!settings.fullscreenEnforcement);
-
-    const checkFull = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', checkFull);
-    checkFull(); // Init check
-
-    return () => document.removeEventListener('fullscreenchange', checkFull);
-  }, []);
-
-  const requestFullScreen = () => {
-    document.documentElement.requestFullscreen().catch(err => {
-      toast.error("Could not enter fullscreen mode: " + err.message);
-    });
-  };
-
-  /* ================= RENDER ================= */
 
   if (strictMode && !isFullscreen && !submittedRef.current) {
     return (
@@ -214,12 +201,10 @@ const AttemptExam = ({ duration = 60 }) => {
 
   return (
     <div className="exam-root">
-
-      {/* TOP BAR */}
       <header className="exam-topbar">
         <div className="exam-title">
-          <strong>DSA</strong>
-          <span>Quiz</span>
+          <strong>Exam Portal</strong>
+          <span>Attempt Exam</span>
         </div>
 
         <div className="exam-timer">
@@ -230,13 +215,10 @@ const AttemptExam = ({ duration = 60 }) => {
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
       <div className="exam-main">
-
-        {/* QUESTION AREA */}
         <section className="exam-question">
           <h4>Question {current + 1}</h4>
-          <p>{currentQuestion.question}</p>
+          <p>{currentQuestion.questionText || currentQuestion.question}</p>
 
           <div className="exam-options">
             {currentQuestion.options.map((opt) => (
@@ -261,10 +243,8 @@ const AttemptExam = ({ duration = 60 }) => {
           </div>
         </section>
 
-        {/* RIGHT PANEL */}
         <aside className="exam-sidebar">
           <h5>Questions</h5>
-
           <div className="question-palette">
             {questions.map((_, idx) => {
               const isAnswered = answers[idx] !== undefined;
@@ -286,8 +266,6 @@ const AttemptExam = ({ duration = 60 }) => {
               );
             })}
           </div>
-
-          {/* LEGEND */}
           <div className="palette-legend">
             <div><span className="answered"></span> Answered</div>
             <div><span className="review"></span> Review</div>
@@ -296,7 +274,6 @@ const AttemptExam = ({ duration = 60 }) => {
         </aside>
       </div>
 
-      {/* FOOTER */}
       <footer className="exam-footer">
         <button onClick={clearCurrentAnswer}>
           Clear Answer
@@ -324,7 +301,6 @@ const AttemptExam = ({ duration = 60 }) => {
       </footer>
     </div>
   );
-
 };
 
 export default AttemptExam;

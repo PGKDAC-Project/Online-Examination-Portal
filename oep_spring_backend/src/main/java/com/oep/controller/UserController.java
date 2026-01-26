@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 	private final UserService userService;
 
+	
 	@GetMapping("/admin/users")
 	@Operation(description = "Get all the users.")
 	public ResponseEntity<?> getAllUsers() {

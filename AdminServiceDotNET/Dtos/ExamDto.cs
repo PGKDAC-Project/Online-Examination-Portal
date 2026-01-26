@@ -9,5 +9,6 @@ namespace AdminServiceDotNET.Dtos
         public int DurationMinutes { get; set; }
         public int TotalMarks { get; set; }
         public string Status { get; set; }
+        public string? ExamPassword { get; set; }
     }
 }
