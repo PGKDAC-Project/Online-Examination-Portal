@@ -22,8 +22,58 @@ public class CourseController {
 
 	@GetMapping("/admin/courses")
 	@Operation(description = "Admin access to all courses")
-	public ResponseEntity<List<Courses>> getAllCoursesAdmin() {
-		return ResponseEntity.ok(courseService.getAllCourses());
+	public ResponseEntity<List<com.oep.dtos.CourseResponseDto>> getAllCoursesAdmin() {
+		List<Courses> courses = courseService.getAllCourses();
+		List<com.oep.dtos.CourseResponseDto> dtos = courses.stream()
+				.map(this::mapToDto)
+				.collect(java.util.stream.Collectors.toList());
+		return ResponseEntity.ok(dtos);
+	}
+	
+	@GetMapping("/admin/courses/{id}")
+	@Operation(description = "Admin get course by ID")
+	public ResponseEntity<com.oep.dtos.CourseResponseDto> getAdminCourseById(@PathVariable Long id) {
+		Courses course = courseService.getCourseById(id);
+		return ResponseEntity.ok(mapToDto(course));
+	}
+
+	private com.oep.dtos.CourseResponseDto mapToDto(Courses course) {
+		com.oep.dtos.CourseResponseDto dto = new com.oep.dtos.CourseResponseDto();
+		dto.setId(course.getId());
+		dto.setCreatedOn(course.getCreatedOn());
+		dto.setLastUpdated(course.getLastUpdated());
+		dto.setCourseCode(course.getCourseCode());
+		dto.setTitle(course.getTitle());
+		dto.setDescription(course.getDescription());
+		
+		if (course.getSyllabus() != null) {
+			dto.setSyllabus(course.getSyllabus().stream().map(s -> {
+				com.oep.dtos.CourseResponseDto.SyllabusDto sDto = new com.oep.dtos.CourseResponseDto.SyllabusDto();
+				sDto.setModuleNumber(s.getModuleNo());
+				sDto.setModuleTitle(s.getModuleTitle());
+				sDto.setModuleDescription(s.getModuleDescription());
+				sDto.setEstimatedHours(s.getEstimatedHrs());
+				return sDto;
+			}).collect(java.util.stream.Collectors.toList()));
+		}
+		
+		if (course.getInstructorDetails() != null) {
+			com.oep.dtos.CourseResponseDto.InstructorDto iDto = new com.oep.dtos.CourseResponseDto.InstructorDto();
+			iDto.setId(course.getInstructorDetails().getId());
+			iDto.setName(course.getInstructorDetails().getUserName());
+			iDto.setEmail(course.getInstructorDetails().getEmail());
+			iDto.setRole(course.getInstructorDetails().getRole().toString());
+			dto.setInstructorDetails(iDto);
+		}
+		
+		dto.setOutcomes(course.getOutcomes());
+		
+		if (course.getStatus() != null) {
+			String s = course.getStatus().toString();
+			dto.setStatus(s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase());
+		}
+		
+		return dto;
 	}
 
 	@GetMapping("/instructor/courses/{instructorId}")

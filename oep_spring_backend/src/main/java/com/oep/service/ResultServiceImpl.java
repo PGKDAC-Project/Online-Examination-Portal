@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.oep.entities.ExamResults;
 import com.oep.repository.ResultRepository;
+import com.oep.custom_exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,6 +27,12 @@ public class ResultServiceImpl implements ResultService {
     @Override
     public List<ExamResults> getResultsByExam(Long examId) {
         return resultRepository.findByExamId(examId);
+    }
+
+    @Override
+    public ExamResults getResultById(Long id) {
+        return resultRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Result not found with id: " + id));
     }
 
     @Override

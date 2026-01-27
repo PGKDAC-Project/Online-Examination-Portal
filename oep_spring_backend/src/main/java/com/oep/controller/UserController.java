@@ -28,7 +28,10 @@ public class UserController {
 	
 	@GetMapping("/admin/users")
 	@Operation(description = "Get all the users.")
-	public ResponseEntity<?> getAllUsers() {
+	public ResponseEntity<?> getAllUsers(@org.springframework.web.bind.annotation.RequestParam(required = false) String role) {
+		if (role != null && !role.isEmpty()) {
+			return ResponseEntity.ok(userService.getUsersByRole(role));
+		}
 		return ResponseEntity.ok(userService.getAllUsers());
 	}
 

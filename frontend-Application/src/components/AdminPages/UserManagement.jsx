@@ -60,7 +60,18 @@ const UserManagement = () => {
 
   const viewUser = (u) => navigate(`/admin/users/${u.id}`);
   const editUser = (u) => navigate(`/admin/users/${u.id}/edit`);
-  const disableUser = (u) => toast.warn(`Disabled ${u.name}`); // Implement actual API later if needed
+  const disableUser = async (u) => {
+    if (window.confirm(`Are you sure you want to disable ${u.name}?`)) {
+      try {
+        await updateUser(u.id, { ...u, status: "Disabled" });
+        toast.success(`User ${u.name} disabled successfully`);
+        fetchData();
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to disable user");
+      }
+    }
+  };
   const createUser = () => navigate("/admin/users/create");
 
   const handleExportCSV = () => {

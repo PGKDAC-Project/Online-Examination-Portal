@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.oep.entities.Exam;
+import com.oep.entities.ExamQuestions;
 import com.oep.entities.ExamViolation;
 import com.oep.service.ExamService;
 import com.oep.repository.ViolationRepository;
@@ -66,6 +67,20 @@ public class ExamController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/instructor/exams/{examId}/questions/{questionId}")
+    @Operation(description = "Add question to exam")
+    public ResponseEntity<Void> addQuestionToExam(@PathVariable Long examId, @PathVariable Long questionId) {
+        examService.addQuestionToExam(examId, questionId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/instructor/exams/{examId}/questions/{questionId}")
+    @Operation(description = "Remove question from exam")
+    public ResponseEntity<Void> removeQuestionFromExam(@PathVariable Long examId, @PathVariable Long questionId) {
+        examService.removeQuestionFromExam(examId, questionId);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/student/exams/{examId}/report-violation")
     @Operation(description = "Report exam violation")
     public ResponseEntity<?> reportViolation(@PathVariable Long examId, @RequestBody ExamViolation violation) {
@@ -97,7 +112,26 @@ public class ExamController {
                 return ResponseEntity.status(401).body(new com.oep.dtos.ApiResponse("failed", "Invalid exam password"));
             }
         }
-        // Handle actual submission logic here if needed, or redirect to results
+        
+        // Handle actual submission
+        if (payload.containsKey("answers") && payload.containsKey("studentId")) {
+             Long studentId = Long.parseLong(payload.get("studentId").toString());
+             @SuppressWarnings("unchecked")
+             Map<String, Object> rawAnswers = (Map<String, Object>) payload.get("answers");
+             
+             Map<Long, String> answers = new java.util.HashMap<>();
+             for (Map.Entry<String, Object> entry : rawAnswers.entrySet()) {
+                 try {
+                    answers.put(Long.parseLong(entry.getKey()), entry.getValue().toString());
+                 } catch (NumberFormatException e) {
+                     // ignore invalid keys
+                 }
+             }
+             
+             com.oep.entities.ExamResults result = examService.submitExam(examId, studentId, answers);
+             return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Exam submitted successfully"));
+        }
+        
         return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Submission received"));
     }
 }

@@ -6,6 +6,8 @@ import java.time.LocalTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -58,14 +60,17 @@ public class Exam extends BaseEntity {
 
 	@OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
 	@OrderBy("sequenceOrder ASC")
+	@JsonIgnore
 	private Set<ExamQuestions> examQuestions = new LinkedHashSet<>();
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "course_id", nullable = false)
+	@JsonIgnore
 	private Courses course;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "created_by", nullable = false)
+	@JsonIgnore
 	private User instructorDetails;
 
 	@Column(name = "total_questions", nullable = false)

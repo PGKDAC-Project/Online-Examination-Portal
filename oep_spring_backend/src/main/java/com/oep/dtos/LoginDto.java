@@ -15,6 +15,6 @@ public class LoginDto {
 	@Email(message = "Invalid Email Format")
 	private String email;
 	@NotBlank
-	@Pattern(regexp="((?=.*\\d)(?=.*[a-z])(?=.*[#@$*]).{5,20})",message = "Blank or invalid password")
+	@Pattern(regexp="^.{5,20}$",message = "Password must be between 5 and 20 characters")
 	private String password;
 }

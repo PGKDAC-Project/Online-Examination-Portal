@@ -31,6 +31,12 @@ public class ResultController {
         return ResponseEntity.ok(resultService.getResultsByStudent(studentId));
     }
 
+    @GetMapping("/results/{id}")
+    @Operation(description = "Get result by ID")
+    public ResponseEntity<ExamResults> getResultById(@PathVariable Long id) {
+        return ResponseEntity.ok(resultService.getResultById(id));
+    }
+
     @PostMapping("/student/results/submit")
     @Operation(description = "Student submit exam result")
     public ResponseEntity<ExamResults> submitResult(@RequestBody ExamResults result) {

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useExamSecurity } from "./useExamSecurity";
 import { useFullscreenEnforcement } from "./useFullscreenEnforcement";
-import { startExam as fetchExamQuestions } from "../../../services/student/studentService";
+import { startExam as fetchExamQuestions, submitExam as fetchSubmitExam } from "../../../services/student/studentService";
 import ReviewAnswers from "./ReviewAnswers";
 import "./AttemptExam.css";
 import { toast } from "react-toastify";
@@ -25,12 +25,35 @@ const AttemptExam = ({ duration = 60 }) => {
   /* ================= SUBMIT LOGIC ================= */
   const submittedRef = useRef(false);
 
-  const submitExam = useCallback(() => {
+  const submitExam = useCallback(async () => {
     if (submittedRef.current) return;
     submittedRef.current = true;
-    toast.success("Exam submitted");
-    navigate("/student/exams");
-  }, [navigate]);
+
+    const formattedAnswers = {};
+    Object.keys(answers).forEach(index => {
+        const question = questions[index];
+        if (question) {
+            // For multiple choice, join array with comma or send as is? 
+            // Backend expects String (JSON). studentService sends Object.
+            // Backend converts Object value to String.
+            // If it's an array (multiple choice), toString() will be "a,b".
+            // That works for now.
+            formattedAnswers[question.id] = answers[index];
+        }
+    });
+
+    try {
+        await fetchSubmitExam(examId, formattedAnswers);
+        toast.success("Exam submitted");
+        navigate("/student/exams");
+    } catch (err) {
+        console.error("Submission failed", err);
+        toast.error("Failed to submit exam. Please contact admin.");
+        // Should we allow retry? submittedRef is true now.
+        // Maybe set submittedRef back to false if error?
+        submittedRef.current = false; 
+    }
+  }, [navigate, answers, questions, examId]);
 
   const autoSubmit = useCallback(() => {
     toast.warning("Exam auto-submitted due to violations");

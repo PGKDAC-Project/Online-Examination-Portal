@@ -10,5 +10,7 @@ public interface ResultService {
 
     List<ExamResults> getResultsByExam(Long examId);
 
+    ExamResults getResultById(Long id);
+
     ExamResults submitResult(ExamResults result);
 }

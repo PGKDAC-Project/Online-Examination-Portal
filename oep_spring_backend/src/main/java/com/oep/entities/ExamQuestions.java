@@ -1,5 +1,7 @@
 package com.oep.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -22,6 +24,7 @@ public class ExamQuestions{
 	@ManyToOne(fetch = FetchType.LAZY)
 	@MapsId("examId")
 	@JoinColumn(name = "exam_id", nullable = false)
+	@JsonIgnore
 	private Exam exam;
 	
 	@ManyToOne(fetch = FetchType.LAZY)

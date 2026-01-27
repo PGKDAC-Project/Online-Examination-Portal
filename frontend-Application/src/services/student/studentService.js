@@ -1,40 +1,55 @@
 import axiosClient from "../axios/axiosClient";
+import { getCurrentUser } from "../auth/authService";
+
+const getStudentId = () => {
+    const user = getCurrentUser();
+    return user ? user.id : null;
+};
 
 export const getStudentProfile = async () => {
-  return await axiosClient.get("/profile");
+  const id = getStudentId();
+  if (!id) throw new Error("User not authenticated");
+  return await axiosClient.get(`/student/profile/${id}`);
 };
 
 export const getStudentDashboard = async () => {
-  return await axiosClient.get("/dashboard");
+  // Assuming dashboard is aggregate of available courses/exams or just using profile for now
+  // Since no direct dashboard endpoint exists, we can return profile or fetch minimal data
+  // For now, let's just return profile as dashboard info
+  return getStudentProfile(); 
 };
 
 export const getAvailableCourses = async () => {
-  return await axiosClient.get("/courses/available");
+  const id = getStudentId();
+  return await axiosClient.get(`/student/courses/available/${id}`);
 };
 
 export const enrollCourse = async (courseId) => {
-  return await axiosClient.post(`/courses/${courseId}/enrollments`);
+  const id = getStudentId();
+  return await axiosClient.post(`/student/courses/${courseId}/enroll/${id}`);
 };
 
 export const getAvailableExams = async () => {
-  return await axiosClient.get("/exams/available");
+  const id = getStudentId();
+  return await axiosClient.get(`/student/exams/available/${id}`);
 };
 
 export const getExamHistory = async () => {
-  return await axiosClient.get("/student/exams");
+  const id = getStudentId();
+  return await axiosClient.get(`/student/results/${id}`);
 };
 
 export const startExam = async (examId, password) => {
-  return await axiosClient.post(`/exams/${examId}/submissions`, { password });
+  return await axiosClient.post(`/student/exams/${examId}/submissions`, { password });
 };
 
 export const submitExam = async (examId, answers) => {
-  // Assuming submission update or finalization
-  return await axiosClient.put(`/exams/${examId}/submissions`, { answers });
+  const id = getStudentId();
+  return await axiosClient.post(`/student/exams/${examId}/submissions`, { answers, studentId: id });
 };
 
 export const reportViolation = async (examId, violationData) => {
-  return await axiosClient.post(`/exams/${examId}/violations`, violationData);
+  return await axiosClient.post(`/student/exams/${examId}/report-violation`, violationData);
 };
 
 export const getDetailedResult = async (resultId) => {

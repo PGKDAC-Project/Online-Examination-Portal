@@ -2,6 +2,8 @@ package com.oep.entities;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,10 +33,12 @@ public class ExamResults extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "exam_id", nullable = false)
+	@JsonIgnore
 	private Exam exam;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "student_id", nullable = false)
+	@JsonIgnore
 	private User student;
 
 	@Column(name = "total_marks", nullable = false)
@@ -57,6 +61,7 @@ public class ExamResults extends BaseEntity {
 	private Integer violationCount = 0;
 
 	@OneToMany(mappedBy = "examResult", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+	@JsonIgnore
 	private java.util.List<ExamViolation> violations = new java.util.ArrayList<>();
 
 	@PrePersist

@@ -60,6 +60,7 @@ import DefineCourseOutcomes from './components/InstructorPages/Course Management
 import CreateExam from './components/InstructorPages/Exam Management/CreateExam';
 import EditExam from './components/InstructorPages/Exam Management/EditExam';
 import ViewExamDetails from './components/InstructorPages/Exam Management/ViewExamDetails';
+import ExamQuestions from './components/InstructorPages/Exam Management/ExamQuestions';
 import AddQuestion from './components/InstructorPages/Question Bank Management/AddQuestion';
 import ImportQuestions from './components/InstructorPages/Question Bank Management/ImportQuestions';
 import ManageQuestions from './components/InstructorPages/Question Bank Management/ManageQuestions';
@@ -142,6 +143,7 @@ function App() {
               <Route path="/instructor/exams/create" element={<CreateExam />} />
               <Route path="/instructor/exams/:examId" element={<ViewExamDetails />} />
               <Route path="/instructor/exams/:examId/edit" element={<EditExam />} />
+              <Route path="/instructor/exams/:examId/questions" element={<ExamQuestions />} />
 
               <Route path="/instructor/results" element={<ResultEvaluation />} />
               <Route path="/instructor/live-exams" element={<LiveExamMonitoring />} />

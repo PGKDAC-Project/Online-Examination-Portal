@@ -3,6 +3,8 @@ package com.oep.entities;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -10,6 +12,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderBy;
@@ -36,8 +39,9 @@ public class Courses extends BaseEntity {
 	@OrderBy("moduleNo ASC")
 	private List<Syllabus> syllabus = new ArrayList<>();
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "instructor_id")
+	@JsonIgnore
 	private User instructorDetails;
 
 	@ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)

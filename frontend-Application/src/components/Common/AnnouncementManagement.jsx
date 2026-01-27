@@ -44,7 +44,7 @@ const AnnouncementManagement = () => {
         if (window.confirm("Delete this announcement?")) {
             try {
                 await deleteAnnouncement(id);
-                // toast.success("Announcement deleted"); // Removed
+                toast.success("Announcement deleted");
                 loadData();
             } catch (err) {
                 toast.error("Failed to delete announcement");
@@ -56,7 +56,7 @@ const AnnouncementManagement = () => {
         e.preventDefault();
         try {
             await createAnnouncement(formData);
-            // toast.success("Announcement posted successfully"); // Removed
+            toast.success("Announcement posted successfully");
             setShowModal(false);
             setFormData({ title: "", description: "", targetRole: "All", targetBatch: "", expiryDate: "" });
             loadData();
@@ -85,11 +85,12 @@ const AnnouncementManagement = () => {
                                         <FaTrash />
                                     </button>
                                 </div>
+
                                 <div className="mb-3">
-                                    <span className="badge bg-light text-secondary me-2 border">{anno.date}</span>
+                                    <span className="badge bg-light text-secondary me-2 border">{anno.createdAt ? new Date(anno.createdAt).toLocaleDateString() : ""}</span>
                                     <span className="badge bg-primary bg-opacity-10 text-primary">Target: {anno.targetRole} {anno.targetBatch && `(${anno.targetBatch})`}</span>
                                     {anno.expiryDate && (
-                                        <div className="mt-1 small text-muted">Expires: {anno.expiryDate}</div>
+                                        <div className="mt-1 small text-muted">Expires: {new Date(anno.expiryDate).toLocaleDateString()}</div>
                                     )}
                                 </div>
                                 <p className="text-secondary mb-0" style={{ lineHeight: '1.6' }}>{anno.description}</p>

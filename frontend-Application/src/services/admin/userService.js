@@ -15,3 +15,11 @@ export const getUsersByRole = async (role) => {
 export const getAllInstructors = async () => {
     return await getUsersByRole("instructor");
 };
+
+export const updateUser = async (id, userData) => {
+    return await adminAxios.put(`/admin/users/${id}`, userData);
+};
+
+export const deleteUser = async (id) => {
+    return await adminAxios.delete(`/admin/users/${id}`);
+};

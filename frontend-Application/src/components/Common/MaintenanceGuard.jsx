@@ -22,7 +22,8 @@ const MaintenanceGuard = ({ children }) => {
                 return;
             }
 
-            if (isPublic && !localStorage.getItem('token')) {
+            // Always skip maintenance check for public routes, regardless of token presence
+            if (isPublic) {
                 setLoading(false);
                 return;
             }

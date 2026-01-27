@@ -1,30 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaSave } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-
-const STORAGE_KEY = "instructorExamsV1";
-
-const loadExams = () => {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-};
-
-const saveExams = (exams) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
-};
+import { createInstructorExam, getInstructorCourses } from '../../../services/instructor/instructorService';
+import { getCurrentUser } from '../../../services/auth/authService';
 
 const CreateExam = () => {
     const navigate = useNavigate();
+    const [courses, setCourses] = useState([]);
     const [exam, setExam] = useState({
         title: '',
-        courseCode: '',
+        courseId: '',
         date: '',
         startTime: '',
         endTime: '',
@@ -33,21 +19,37 @@ const CreateExam = () => {
         instructions: ''
     });
 
+    useEffect(() => {
+        const fetchCourses = async () => {
+            const user = getCurrentUser();
+            if (user) {
+                try {
+                    const data = await getInstructorCourses(user.id);
+                    setCourses(Array.isArray(data) ? data : []);
+                } catch (err) {
+                    toast.error("Failed to load courses");
+                }
+            }
+        };
+        fetchCourses();
+    }, []);
+
     const handleChange = (e) => {
         setExam({ ...exam, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const user = getCurrentUser();
         const title = (exam.title || "").trim();
-        const courseCode = (exam.courseCode || "").trim();
+        const courseId = exam.courseId;
         const passingMarks = Number(exam.passingMarks);
 
         if (!title) {
             toast.error("Please enter exam title.");
             return;
         }
-        if (!courseCode) {
+        if (!courseId) {
             toast.error("Please select a course.");
             return;
         }
@@ -56,25 +58,27 @@ const CreateExam = () => {
             return;
         }
 
-        const id = `EXAM-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-        const nextExam = {
-            id,
-            title,
-            courseCode,
-            date: exam.date,
-            startTime: exam.startTime,
-            endTime: exam.endTime,
+        const payload = {
+            examTitle: title,
+            scheduledDate: exam.date,
+            startTime: exam.startTime + ":00", // Append seconds if needed by LocalTime
+            endTime: exam.endTime + ":00",
             duration: Number(exam.duration) || 60,
-            passingMarks,
-            instructions: exam.instructions || "",
-            status: "Scheduled",
-            questionIds: [],
+            passingMarks: passingMarks,
+            status: "SCHEDULED",
+            course: { id: courseId },
+            instructorDetails: { id: user.id },
+            examPassword: "" // Optional
         };
 
-        const existing = loadExams();
-        saveExams([...existing, nextExam]);
-        toast.success("Exam created. Add questions now.");
-        navigate(`/instructor/exams/${id}/edit`);
+        try {
+            const response = await createInstructorExam(payload);
+            toast.success("Exam created successfully.");
+            navigate(`/instructor/exams`); // Redirect to list or edit
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to create exam");
+        }
     };
 
     return (
@@ -96,10 +100,11 @@ const CreateExam = () => {
                             </div>
                             <div className="col-md-6 mb-3">
                                 <label className="form-label">Course</label>
-                                <select name="courseCode" className="form-select" required onChange={handleChange} value={exam.courseCode}>
+                                <select name="courseId" className="form-select" required onChange={handleChange} value={exam.courseId}>
                                     <option value="">Select Course</option>
-                                    <option value="CS204">CS204 - Data Structures</option>
-                                    <option value="CS210">CS210 - DBMS</option>
+                                    {courses.map(c => (
+                                        <option key={c.id} value={c.id}>{c.title} ({c.courseCode})</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -127,17 +132,6 @@ const CreateExam = () => {
                             <div className="col-md-4">
                                 <label className="form-label">Passing Marks</label>
                                 <input type="number" name="passingMarks" className="form-control" required min="1" value={exam.passingMarks} onChange={handleChange} />
-                            </div>
-                            <div className="col-md-4">
-                                <label className="form-label">Passing Criteria (%)</label>
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    disabled
-                                    value={exam.passingMarks && exam.totalMarks ? ((exam.passingMarks / exam.totalMarks) * 100).toFixed(1) : "N/A"}
-                                    placeholder="Calculated automatically"
-                                />
-                                <small className="text-muted">Will be calculated based on total questions.</small>
                             </div>
                         </div>
 

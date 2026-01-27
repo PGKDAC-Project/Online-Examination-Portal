@@ -53,7 +53,39 @@ public class UserServiceImpl implements UserService {
 		return userRepository.findAll().stream()
 				.map(user -> {
 					UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
-					dto.setName(user.getUserName()); // manual fix for field mismatch
+					dto.setName(user.getUserName());
+					// Format role: ROLE_ADMIN -> Admin
+					String formattedRole = user.getRole().name().replace("ROLE_", "");
+					formattedRole = formattedRole.substring(0, 1).toUpperCase() + formattedRole.substring(1).toLowerCase();
+					dto.setRole(formattedRole);
+					// Format status: ACTIVE -> Active
+					String formattedStatus = user.getStatus().name();
+					formattedStatus = formattedStatus.substring(0, 1).toUpperCase() + formattedStatus.substring(1).toLowerCase();
+					dto.setStatus(formattedStatus);
+					return dto;
+				})
+				.collect(Collectors.toList());
+	}
+	
+	@Override
+	public java.util.List<UserResponseDto> getUsersByRole(String role) {
+		// Handle both "instructor" and "ROLE_INSTRUCTOR" formats
+		if (!role.toUpperCase().startsWith("ROLE_")) {
+			role = "ROLE_" + role.toUpperCase();
+		}
+		UserRole userRole = parseEnum(UserRole.class, role);
+		return userRepository.findByRole(userRole).stream()
+				.map(user -> {
+					UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
+					dto.setName(user.getUserName());
+					// Format role: ROLE_ADMIN -> Admin
+					String formattedRole = user.getRole().name().replace("ROLE_", "");
+					formattedRole = formattedRole.substring(0, 1).toUpperCase() + formattedRole.substring(1).toLowerCase();
+					dto.setRole(formattedRole);
+					// Format status: ACTIVE -> Active
+					String formattedStatus = user.getStatus().name();
+					formattedStatus = formattedStatus.substring(0, 1).toUpperCase() + formattedStatus.substring(1).toLowerCase();
+					dto.setStatus(formattedStatus);
 					return dto;
 				})
 				.collect(Collectors.toList());
@@ -64,6 +96,14 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(id).orElseThrow(() -> new InvalidInputException("User not found"));
 		UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
 		dto.setName(user.getUserName());
+		// Format role: ROLE_ADMIN -> Admin
+		String formattedRole = user.getRole().name().replace("ROLE_", "");
+		formattedRole = formattedRole.substring(0, 1).toUpperCase() + formattedRole.substring(1).toLowerCase();
+		dto.setRole(formattedRole);
+		// Format status: ACTIVE -> Active
+		String formattedStatus = user.getStatus().name();
+		formattedStatus = formattedStatus.substring(0, 1).toUpperCase() + formattedStatus.substring(1).toLowerCase();
+		dto.setStatus(formattedStatus);
 		return dto;
 	}
 

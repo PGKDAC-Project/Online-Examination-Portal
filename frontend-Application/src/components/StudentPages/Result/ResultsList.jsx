@@ -9,7 +9,20 @@ const ResultsList = () => {
 
     useEffect(() => {
         getExamHistory().then(data => {
-            setResults(Array.isArray(data) ? data : []);
+            if (Array.isArray(data)) {
+                 const formatted = data.map(r => ({
+                     id: r.id,
+                     examId: r.exam ? r.exam.id : null,
+                     examName: r.exam ? r.exam.examTitle : "Unknown Exam",
+                     score: r.totalScore,
+                     totalMarks: r.totalMarks,
+                     percentage: r.totalMarks > 0 ? ((r.totalScore / r.totalMarks) * 100).toFixed(2) : 0,
+                     status: r.status === 'PASSED' ? 'Pass' : (r.status === 'FAILED' ? 'Fail' : r.status)
+                 }));
+                 setResults(formatted);
+            } else {
+                setResults([]);
+            }
             setLoading(false);
         }).catch(() => setLoading(false));
     }, []);

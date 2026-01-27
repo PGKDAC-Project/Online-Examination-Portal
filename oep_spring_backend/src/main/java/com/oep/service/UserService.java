@@ -1,6 +1,9 @@
 package com.oep.service;
 
-import com.oep.dtos.CreateUserDto;
+import java.util.List;
+
+import com.oep.dtos.*;
+import com.oep.entities.User;
 
 import jakarta.validation.Valid;
 
@@ -8,9 +11,11 @@ public interface UserService {
 
 	void createUser(CreateUserDto dto);
 
-	java.util.List<com.oep.dtos.UserResponseDto> getAllUsers();
+	List<UserResponseDto> getAllUsers();
+	
+	List<com.oep.dtos.UserResponseDto> getUsersByRole(String role);
 
-	com.oep.dtos.UserResponseDto getUserById(Long id);
+	UserResponseDto getUserById(Long id);
 
 	void updateUser(Long id, CreateUserDto dto);
 

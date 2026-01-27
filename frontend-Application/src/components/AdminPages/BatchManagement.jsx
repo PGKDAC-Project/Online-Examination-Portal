@@ -126,8 +126,8 @@ const BatchManagement = () => {
                                 batches.map(batch => (
                                     <tr key={batch.id}>
                                         <td className="fw-medium">{batch.batchName}</td>
-                                        <td>{batch.startDate}</td>
-                                        <td>{batch.endDate}</td>
+                                        <td>{batch.startDate ? new Date(batch.startDate).toLocaleDateString() : ""}</td>
+                                        <td>{batch.endDate ? new Date(batch.endDate).toLocaleDateString() : ""}</td>
                                         <td>
                                             <span className={`badge ${getStatus(batch) === 'Active' ? 'bg-success' : 'bg-secondary'}`}>
                                                 {getStatus(batch)}

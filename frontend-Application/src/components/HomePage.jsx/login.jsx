@@ -57,11 +57,25 @@ function Login() {
             console.error("Login Fail:", err);
             // Requirement: "Display backend error message Below password field In red color"
             // And "Remove toast notifications for login errors"
-            if (err?.code === "INVALID_CREDENTIALS") {
-                setLoginError("Invalid email or password");
-            } else {
-                setLoginError("Invalid email or password. Please try again.");
+            let errorMessage = "Invalid email or password. Please try again.";
+            
+            // Check for validation errors from backend
+            if (err?.status === 400) {
+                // Handle validation errors from Spring Boot
+                if (err?.data?.errors) {
+                    // If errors array exists (e.g., from @Valid annotation)
+                    const firstError = err.data.errors[0];
+                    errorMessage = firstError?.message || errorMessage;
+                } else if (err?.data?.message) {
+                    // If direct message from backend
+                    errorMessage = err.data.message;
+                }
+            } else if (err?.status === 401) {
+                // Unauthorized - invalid credentials
+                errorMessage = "Invalid email or password";
             }
+            
+            setLoginError(errorMessage);
         } finally {
             setLoading(false);
         }

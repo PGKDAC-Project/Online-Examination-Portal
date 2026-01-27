@@ -5,7 +5,7 @@ export const getAllExams = async () => {
 };
 
 export const getExamById = async (id) => {
-    return await adminAxios.get(`/admin/exams/${id}`);
+    return await adminAxios.get(`/exams/${id}`);
 };
 
 export const createExam = async (exam) => {

@@ -1,54 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {
-    FaPlusCircle,
-    FaEdit,
-    FaTrash,
-    FaEye,
-    FaClock,
-    FaCheckCircle,
-    FaBroadcastTower
-} from 'react-icons/fa';
-import { getAllExams, deleteExam as deleteExamService } from '../../../services/admin/examService';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaClipboardList } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { getInstructorExams, deleteInstructorExam } from '../../../services/instructor/instructorService';
+import { getCurrentUser } from '../../../services/auth/authService';
 
-function ExamManagement() {
+const ExamManagement = () => {
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchExams = async () => {
-            try {
-                const data = await getAllExams();
-                setExams(data || []);
-            } catch (err) {
-                console.error("Failed to fetch exams:", err);
-                toast.error("Could not load exams from server.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchExams();
+        loadExams();
     }, []);
 
-    const handleDelete = async (examId) => {
-        const ok = window.confirm("Delete this exam?");
-        if (!ok) return;
+    const loadExams = async () => {
         try {
-            await deleteExamService(examId);
-            setExams(exams.filter((e) => String(e.id) !== String(examId)));
-            toast.success("Exam deleted successfully.");
-        } catch (err) {
-            toast.error("Failed to delete exam: " + err.message);
+            const user = getCurrentUser();
+            if (user && user.id) {
+                const data = await getInstructorExams(user.id);
+                setExams(Array.isArray(data) ? data : []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch exams:", error);
+            toast.error("Failed to load exams.");
+        } finally {
+            setLoading(false);
         }
     };
 
-    const statusBadge = (status) => {
-        switch (status) {
-            case "Scheduled": return "badge bg-primary";
-            case "Live": return "badge bg-danger";
-            case "Completed": return "badge bg-success";
-            default: return "badge bg-secondary";
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to delete this exam?")) {
+            try {
+                await deleteInstructorExam(id);
+                toast.success("Exam deleted successfully");
+                loadExams();
+            } catch (error) {
+                console.error("Failed to delete exam:", error);
+                toast.error("Failed to delete exam.");
+            }
         }
     };
 
@@ -56,61 +45,80 @@ function ExamManagement() {
 
     return (
         <div>
-            <h2 className="mb-4">Exam Creation & Management</h2>
-
-            <div className="mb-4">
-                <Link to="/instructor/exams/create" className="btn btn-success">
-                    <FaPlusCircle className="me-2" />
-                    Create New Exam
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h2>Exam Management</h2>
+                <Link to="/instructor/exams/create" className="btn btn-primary">
+                    <FaPlus className="me-2" /> Create New Exam
                 </Link>
             </div>
 
-            <div className="card shadow-sm border-0">
-                <div className="card-header bg-dark text-white">
-                    <h5 className="mb-0">Manage Exams</h5>
+            {exams.length === 0 ? (
+                <div className="alert alert-info text-center">
+                    No exams found. Click "Create New Exam" to get started.
                 </div>
-
-                <div className="card-body table-responsive">
-                    <table className="table table-hover align-middle">
+            ) : (
+                <div className="table-responsive">
+                    <table className="table table-hover shadow-sm align-middle">
                         <thead className="table-light">
                             <tr>
                                 <th>Exam Title</th>
                                 <th>Course</th>
                                 <th>Date</th>
+                                <th>Time</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-
                         <tbody>
-                            {exams.map(exam => (
+                            {exams.map((exam) => (
                                 <tr key={exam.id}>
-                                    <td>{exam.title}</td>
-                                    <td>{exam.courseCode || exam.course}</td>
-                                    <td>{exam.date}</td>
                                     <td>
-                                        <span className={statusBadge(exam.status)}>
-                                            {exam.status === "Live" && <FaBroadcastTower className="me-1" />}
-                                            {exam.status === "Scheduled" && <FaClock className="me-1" />}
-                                            {exam.status === "Completed" && <FaCheckCircle className="me-1" />}
+                                        <div className="fw-bold">{exam.examTitle}</div>
+                                        <small className="text-muted">Duration: {exam.duration} mins</small>
+                                    </td>
+                                    <td>{exam.course ? exam.course.courseCode : 'N/A'}</td>
+                                    <td>{exam.scheduledDate}</td>
+                                    <td>{exam.startTime} - {exam.endTime}</td>
+                                    <td>
+                                        <span className={`badge ${exam.status === 'SCHEDULED' ? 'bg-warning' :
+                                                exam.status === 'LIVE' ? 'bg-success' :
+                                                    exam.status === 'COMPLETED' ? 'bg-secondary' : 'bg-primary'
+                                            }`}>
                                             {exam.status}
                                         </span>
                                     </td>
                                     <td>
-                                        <div className="btn-group btn-group-sm">
-                                            {exam.status === "Scheduled" && (
-                                                <>
-                                                    <Link to={`/instructor/exams/${exam.id}/edit`} className="btn btn-outline-primary">
-                                                        <FaEdit />
-                                                    </Link>
-                                                    <button type="button" className="btn btn-outline-danger" onClick={() => handleDelete(exam.id)}>
-                                                        <FaTrash />
-                                                    </button>
-                                                </>
-                                            )}
-                                            <Link to={`/instructor/exams/${exam.id}`} className="btn btn-outline-dark">
-                                                <FaEye />
+                                        <div className="btn-group">
+                                            <Link
+                                                to={`/instructor/exams/${exam.id}/questions`}
+                                                className="btn btn-sm btn-outline-info"
+                                                title="Manage Questions"
+                                            >
+                                                <FaClipboardList />
                                             </Link>
+                                            <Link
+                                                to={`/instructor/exams/${exam.id}/edit`}
+                                                className="btn btn-sm btn-outline-primary"
+                                                title="Edit Exam"
+                                            >
+                                                <FaEdit />
+                                            </Link>
+                                            <button
+                                                className="btn btn-sm btn-outline-danger"
+                                                onClick={() => handleDelete(exam.id)}
+                                                title="Delete Exam"
+                                            >
+                                                <FaTrash />
+                                            </button>
+                                            {exam.status === 'LIVE' && (
+                                                <Link
+                                                    to={`/instructor/exams/${exam.id}/monitor`}
+                                                    className="btn btn-sm btn-outline-success"
+                                                    title="Monitor Live Exam"
+                                                >
+                                                    <FaEye />
+                                                </Link>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -118,9 +126,9 @@ function ExamManagement() {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            )}
         </div>
     );
-}
+};
 
 export default ExamManagement;
