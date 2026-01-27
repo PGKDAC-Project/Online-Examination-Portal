@@ -20,7 +20,7 @@ namespace AdminServiceDotNET.Models
 
         [Required]
         [Column("message", TypeName = "text")]
-        public string Message { get; set; }
+        public string Description { get; set; }
 
         // Created by (admin or instructor email)
         [Required]

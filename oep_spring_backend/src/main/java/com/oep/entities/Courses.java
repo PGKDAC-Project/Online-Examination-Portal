@@ -31,7 +31,7 @@ public class Courses extends BaseEntity {
 	@Column(nullable = false)
 	private String description;
 
-	@ElementCollection
+	@ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
 	@CollectionTable(name = "course_syllabus", joinColumns = @JoinColumn(name = "course_id"))
 	@OrderBy("moduleNo ASC")
 	private List<Syllabus> syllabus = new ArrayList<>();
@@ -40,7 +40,7 @@ public class Courses extends BaseEntity {
 	@JoinColumn(name = "instructor_id")
 	private User instructorDetails;
 
-	@ElementCollection
+	@ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
 	@CollectionTable(name = "course_outcomes", joinColumns = @JoinColumn(name = "course_id"))
 	@Column(name = "outcome_text")
 	private List<String> outcomes = new ArrayList<>();

@@ -22,6 +22,10 @@ namespace AdminServiceDotNET.Models
         [MaxLength(30)]
         public string BatchName { get; set; }
 
+        [Column("description")]
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
         [Required]
         [Column("start_date")]
         public DateTime StartDate { get; set; }

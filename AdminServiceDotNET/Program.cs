@@ -137,9 +137,11 @@ namespace AdminServiceDotNET
                 options.AddPolicy("AllowFrontend",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5173")
+                        var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+                        policy.WithOrigins(frontendUrl)
                               .AllowAnyHeader()
-                              .AllowAnyMethod();
+                              .AllowAnyMethod()
+                              .AllowCredentials();
                     });
             });
 

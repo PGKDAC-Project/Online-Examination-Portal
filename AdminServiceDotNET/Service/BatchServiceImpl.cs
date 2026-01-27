@@ -22,10 +22,9 @@ namespace AdminServiceDotNET.Service
             {
                 Id = b.Id,
                 BatchName = b.BatchName,
+                Description = b.Description,
                 StartDate = b.StartDate,
                 EndDate = b.EndDate,
-                StartDateString = b.StartDate.ToString("yyyy-MM"),
-                EndDateString = b.EndDate.ToString("yyyy-MM"),
                 Status = b.EndDate >= DateTime.Now ? "Active" : "Completed"
             });
         }
@@ -37,25 +36,21 @@ namespace AdminServiceDotNET.Service
             {
                 Id = b.Id,
                 BatchName = b.BatchName,
+                Description = b.Description,
                 StartDate = b.StartDate,
                 EndDate = b.EndDate,
-                StartDateString = b.StartDate.ToString("yyyy-MM"),
-                EndDateString = b.EndDate.ToString("yyyy-MM"),
                 Status = b.EndDate >= DateTime.Now ? "Active" : "Completed"
             };
         }
 
         public async Task CreateBatchAsync(BatchDto dto)
         {
-            // Parse dates from string format (YYYY-MM)
-            DateTime startDate = DateTime.Parse(dto.StartDateString + "-01");
-            DateTime endDate = DateTime.Parse(dto.EndDateString + "-01");
-            
             var batch = new Batch
             {
                 BatchName = dto.BatchName,
-                StartDate = startDate,
-                EndDate = endDate
+                Description = dto.Description,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate
             };
             await batchRepository.AddAsync(batch);
         }
@@ -66,17 +61,9 @@ namespace AdminServiceDotNET.Service
             if (b != null)
             {
                 b.BatchName = dto.BatchName;
-                
-                // Parse dates from string if provided
-                if (!string.IsNullOrEmpty(dto.StartDateString))
-                {
-                    b.StartDate = DateTime.Parse(dto.StartDateString + "-01");
-                }
-                if (!string.IsNullOrEmpty(dto.EndDateString))
-                {
-                    b.EndDate = DateTime.Parse(dto.EndDateString + "-01");
-                }
-                
+                b.Description = dto.Description;
+                b.StartDate = dto.StartDate;
+                b.EndDate = dto.EndDate;
                 await batchRepository.UpdateAsync(b);
             }
         }
