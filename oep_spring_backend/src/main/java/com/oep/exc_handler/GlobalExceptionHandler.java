@@ -18,6 +18,7 @@ import com.oep.custom_exceptions.ResourceNotFoundException;
 import com.oep.custom_exceptions.AuthenticationFailedException;
 import com.oep.dtos.ApiResponse;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,11 +46,27 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
 		List<FieldError> list = e.getFieldErrors();
-		String errorMessage = list.stream()
-				.map(FieldError::getDefaultMessage)
+		Map<String, String> errors = list.stream()
+				.collect(Collectors.toMap(
+						FieldError::getField,
+						FieldError::getDefaultMessage,
+						(existing, replacement) -> existing + ", " + replacement
+				));
+
+		String errorMessage = errors.values().stream()
 				.collect(Collectors.joining(", "));
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-				.body(new ApiResponse("ValidationFailed", errorMessage));
+				.body(Map.of(
+						"status", "ValidationFailed",
+						"message", errorMessage,
+						"errors", errors
+				));
+	}
+
+	@ExceptionHandler(BadCredentialsException.class)
+	public ResponseEntity<?> handleBadCredentialsException(BadCredentialsException e) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(new ApiResponse("Failed", "Invalid credentials"));
 	}
 }

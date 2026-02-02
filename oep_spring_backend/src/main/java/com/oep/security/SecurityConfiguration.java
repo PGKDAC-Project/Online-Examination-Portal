@@ -2,9 +2,7 @@ package com.oep.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,6 +10,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -39,31 +39,44 @@ public class SecurityConfiguration {
 	 * Add HttpSecurity as the dependency - to build sec filter chain
 	 */
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		log.info("********configuring spring sec filter chain*******");
-		// disable CSRF protection
 		http.csrf(csrf -> csrf.disable());
-		// enable CORS with custom configuration source
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-		// disable HttpSession creation
 		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		// add url based authentication n authorization rules
 		http.authorizeHttpRequests(request ->
-		// configure public end points
-		request.requestMatchers(
-				"/auth/signin",
-				"/auth/forgot-password",
-				"/auth/reset-password/**",
-				"/v3/api-docs/**",
-				"/swagger-ui/**",
-				"/swagger-ui.html").permitAll()
-				.anyRequest().authenticated());
+			request
+				// Public endpoints
+				.requestMatchers(
+					"/auth/signin",
+					"/auth/forgot-password",
+					"/auth/reset-password/**",
+					"/v3/api-docs/**",
+					"/swagger-ui/**",
+					"/swagger-ui.html"
+				).permitAll()
+				// Internal API - No authentication (for cross-service communication)
+				.requestMatchers("/api/audit-logs").permitAll()
+				// Admin APIs
+				.requestMatchers("/admin/**").hasRole("ADMIN")
+				// Instructor APIs
+				.requestMatchers("/instructor/**").hasRole("INSTRUCTOR")
+				// Student APIs
+				.requestMatchers("/student/**").hasRole("STUDENT")
+				// Logs APIs - Admin only
+				.requestMatchers("/logs/**").hasRole("ADMIN")
+				// All other requests require authentication
+				.anyRequest().authenticated()
+		);
 
-		// Add JWT filter
 		http.addFilterBefore(jwtAuthenticationFilter,
 				org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+
+		http.exceptionHandling(ex -> ex
+				.authenticationEntryPoint(authenticationEntryPoint()));
 
 		return http.build();
 	}
@@ -86,5 +99,14 @@ public class SecurityConfiguration {
 	@Bean
 	AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
 		return config.getAuthenticationManager();
+	}
+
+	@Bean
+	AuthenticationEntryPoint authenticationEntryPoint() {
+		return (request, response, authException) -> {
+			response.setStatus(HttpStatus.UNAUTHORIZED.value());
+			response.setContentType("application/json");
+			response.getWriter().write("{\"status\":\"Failed\",\"message\":\"Unauthorized\"}");
+		};
 	}
 }

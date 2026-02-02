@@ -1,0 +1,23 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.oep:online_exam_portal_backend >-----------------
+[INFO] Building online_exam_portal_backend 0.0.1
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ online_exam_portal_backend ---
+[INFO] Deleting c:\Users\arkks\OneDrive\Desktop\Pg-Dac\Personal git data\Project\Code\Online-Examination-Portal\oep_spring_backend\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ online_exam_portal_backend ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ online_exam_portal_backend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 92 source files with javac [debug parameters release 21] to target\classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  05:30 h
+[INFO] Finished at: 2026-02-01T14:24:12+05:30
+[INFO] ------------------------------------------------------------------------

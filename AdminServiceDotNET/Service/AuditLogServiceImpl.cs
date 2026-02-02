@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using AdminServiceDotNET.Models;
+using AdminServiceDotNET.Dtos;
 
 namespace AdminServiceDotNET.Service
 {
@@ -36,6 +37,21 @@ namespace AdminServiceDotNET.Service
                             Details = details,
                             CreatedAt = DateTime.UtcNow
                         };
+            dbContext.Add(log);
+            await dbContext.SaveChangesAsync();
+        }
+        
+        public async Task CreateLogAsync(AuditLogCreateDto dto)
+        {
+            var log = new AuditLogs
+            {
+                ServiceName = Enum.Parse<ServiceName>(dto.ServiceName),
+                UserEmail = dto.UserEmail,
+                Role = Enum.Parse<UserRole>(dto.Role),
+                Action = Enum.Parse<AuditAction>(dto.Action),
+                Details = dto.Details,
+                CreatedAt = DateTime.UtcNow
+            };
             dbContext.Add(log);
             await dbContext.SaveChangesAsync();
         }

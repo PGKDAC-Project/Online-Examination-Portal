@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using AdminServiceDotNET.Service;
 using AdminServiceDotNET.Models;
+using AdminServiceDotNET.Dtos;
 using System.Linq;
 
 namespace AdminServiceDotNET.Controllers
@@ -20,10 +21,10 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Dtos.AuditLogDto>>> GetLogs()
+        public async Task<ActionResult<IEnumerable<AuditLogDto>>> GetLogs()
         {
             var logs = await service.GetAllLogsAsync();
-            var dtos = logs.Select(l => new Dtos.AuditLogDto
+            var dtos = logs.Select(l => new AuditLogDto
             {
                 Id = l.Id,
                 Time = l.CreatedAt,
@@ -31,10 +32,19 @@ namespace AdminServiceDotNET.Controllers
                 Role = l.Role.ToString(),
                 Action = l.Action.ToString().Replace("_", " "),
                 ServiceName = l.ServiceName.ToString().Replace("_", " "),
-                Status = "Success", // Most admin logs represent successful actions
+                Status = "Success",
                 Details = l.Details
             });
             return Ok(dtos);
+        }
+        
+        [HttpPost]
+        [Route("/api/audit-logs")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CreateAuditLog([FromBody] AuditLogCreateDto dto)
+        {
+            await service.CreateLogAsync(dto);
+            return Ok();
         }
     }
 }

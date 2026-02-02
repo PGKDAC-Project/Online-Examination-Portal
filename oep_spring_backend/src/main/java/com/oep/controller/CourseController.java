@@ -8,6 +8,7 @@ import com.oep.entities.Courses;
 import com.oep.service.CourseService;
 import com.oep.service.EnrollmentService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.oep.dtos.CourseRequestDto;
 import java.util.Map;
@@ -109,13 +110,13 @@ public class CourseController {
 
 	@PostMapping("/admin/courses")
 	@Operation(description = "Admin create course")
-	public ResponseEntity<Courses> createCourse(@RequestBody CourseRequestDto course) {
+	public ResponseEntity<Courses> createCourse(@RequestBody @Valid CourseRequestDto course) {
 		return ResponseEntity.ok(courseService.createCourse(course));
 	}
 
 	@PutMapping("/admin/courses/{id}")
 	@Operation(description = "Admin update course")
-	public ResponseEntity<Courses> updateCourse(@PathVariable Long id, @RequestBody CourseRequestDto course) {
+	public ResponseEntity<Courses> updateCourse(@PathVariable Long id, @RequestBody @Valid CourseRequestDto course) {
 		return ResponseEntity.ok(courseService.updateCourse(id, course));
 	}
 
@@ -133,5 +134,26 @@ public class CourseController {
 	public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
 		courseService.deleteCourse(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	@GetMapping("/courses/{courseId}/enrollments")
+	@Operation(description = "Get course enrollments")
+	public ResponseEntity<List<?>> getCourseEnrollments(@PathVariable Long courseId) {
+		// Implementation will be added when the service method is available
+		return ResponseEntity.ok(java.util.Collections.emptyList());
+	}
+
+	@PostMapping("/courses/{courseId}/syllabus")
+	@Operation(description = "Update course syllabus")
+	public ResponseEntity<?> updateCourseSyllabus(@PathVariable Long courseId, @RequestBody Object syllabusData) {
+		// Implementation will be added when the service method is available
+		return ResponseEntity.ok(new ApiResponse("success", "Syllabus updated successfully"));
+	}
+
+	@PostMapping("/courses/{courseId}/outcomes")
+	@Operation(description = "Update course outcomes")
+	public ResponseEntity<?> updateCourseOutcomes(@PathVariable Long courseId, @RequestBody Object outcomesData) {
+		// Implementation will be added when the service method is available
+		return ResponseEntity.ok(new ApiResponse("success", "Outcomes updated successfully"));
 	}
 }

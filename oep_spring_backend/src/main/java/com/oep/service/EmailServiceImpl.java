@@ -18,6 +18,7 @@ public class EmailServiceImpl implements EmailService{
 	public void sendResetPasswordLink(String to, String token) {
 		String resetLink = resetBaseUrl+"?token="+token;
 		SimpleMailMessage message  = new SimpleMailMessage();
+		message.setFrom("greyjack420@gmail.com");
 		message.setTo(to);
 		message.setSubject("Reset Password");
 		message.setText(

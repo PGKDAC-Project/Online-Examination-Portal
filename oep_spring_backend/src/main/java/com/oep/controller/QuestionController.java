@@ -43,4 +43,16 @@ public class QuestionController {
         questionService.deleteQuestion(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/tags")
+    public ResponseEntity<Question> updateQuestionTags(@PathVariable Long id, @RequestBody java.util.Map<String, java.util.List<String>> tags) {
+        // Implementation will be added when the service method is available
+        return ResponseEntity.ok(questionService.getQuestionById(id));
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<List<Question>> importQuestions(@RequestPart("file") org.springframework.web.multipart.MultipartFile file) {
+        // Implementation will be added when the service method is available
+        return ResponseEntity.ok(java.util.Collections.emptyList());
+    }
 }

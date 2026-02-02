@@ -131,7 +131,27 @@ public class ExamController {
              com.oep.entities.ExamResults result = examService.submitExam(examId, studentId, answers);
              return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Exam submitted successfully"));
         }
-        
+
         return ResponseEntity.ok(new com.oep.dtos.ApiResponse("success", "Submission received"));
+    }
+
+    @GetMapping("/instructor/exams/{examId}/questions")
+    @Operation(description = "Get exam questions for instructor")
+    public ResponseEntity<List<ExamQuestions>> getExamQuestions(@PathVariable Long examId) {
+        return ResponseEntity.ok(examService.getExamQuestions(examId));
+    }
+
+    @GetMapping("/exams/{examId}/live-stats")
+    @Operation(description = "Get live exam statistics")
+    public ResponseEntity<?> getExamLiveStats(@PathVariable Long examId) {
+        // Implementation will be added when the service method is available
+        return ResponseEntity.ok(java.util.Collections.emptyMap());
+    }
+
+    @GetMapping("/exams/{examId}/live-students")
+    @Operation(description = "Get live exam students")
+    public ResponseEntity<?> getExamLiveStudents(@PathVariable Long examId) {
+        // Implementation will be added when the service method is available
+        return ResponseEntity.ok(java.util.Collections.emptyList());
     }
 }

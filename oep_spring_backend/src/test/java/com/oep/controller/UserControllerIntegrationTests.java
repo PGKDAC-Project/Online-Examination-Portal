@@ -47,7 +47,7 @@ public class UserControllerIntegrationTests {
                 CreateUserDto dto = new CreateUserDto();
                 dto.setName("Lifecycle Test");
                 dto.setEmail("lifecycle@example.com");
-                dto.setPassword("password123");
+                dto.setPassword("Pass@123");
                 dto.setRole("ROLE_STUDENT");
                 dto.setStatus("ACTIVE");
                 dto.setBatchId(1L);
@@ -104,6 +104,6 @@ public class UserControllerIntegrationTests {
 
                 mockMvc.perform(get("/student/profile/" + student.getId()))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.userName").value("Student Profile"));
+                                .andExpect(jsonPath("$.name").value("Student Profile"));
         }
 }

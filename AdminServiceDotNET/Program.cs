@@ -21,6 +21,24 @@ namespace AdminServiceDotNET
             // Add services to the container.
 
             builder.Services.AddControllers()
+                .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.InvalidModelStateResponseFactory = context =>
+                    {
+                        var errors = context.ModelState
+                            .Where(e => e.Value.Errors.Count > 0)
+                            .SelectMany(e => e.Value.Errors.Select(x => x.ErrorMessage))
+                            .ToList();
+                        
+                        var response = new
+                        {
+                            status = "ValidationFailed",
+                            message = string.Join(", ", errors)
+                        };
+                        
+                        return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(response);
+                    };
+                })
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;

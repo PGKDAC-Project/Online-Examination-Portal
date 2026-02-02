@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace AdminServiceDotNET.Dtos
@@ -5,15 +6,23 @@ namespace AdminServiceDotNET.Dtos
     public class AnnouncementDto
     {
         public long Id { get; set; }
+        
+        [Required(ErrorMessage = "Title is required")]
+        [StringLength(200, ErrorMessage = "Title must not exceed 200 characters")]
         [JsonPropertyName("title")]
         public string Title { get; set; }
         
+        [Required(ErrorMessage = "Description is required")]
+        [StringLength(2000, ErrorMessage = "Description must not exceed 2000 characters")]
         [JsonPropertyName("description")]
         public string Description { get; set; }
         
+        [Required(ErrorMessage = "Creator email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
         [JsonPropertyName("createdByEmail")]
         public string CreatedByEmail { get; set; }
         
+        [Required(ErrorMessage = "Creator role is required")]
         [JsonPropertyName("createdByRole")]
         public string CreatedByRole { get; set; }
         

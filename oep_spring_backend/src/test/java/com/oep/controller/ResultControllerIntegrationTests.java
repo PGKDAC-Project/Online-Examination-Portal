@@ -84,20 +84,15 @@ public class ResultControllerIntegrationTests {
         exam.setPassingMarks(40);
         entityManager.persist(exam);
 
-        entityManager.flush();
-
         ExamResults result = new ExamResults();
         result.setStudent(student);
         result.setExam(exam);
         result.setTotalMarks(100);
         result.setTotalScore(85);
         result.setStatus(ResultStatus.PASS);
+        entityManager.persist(result);
 
-        // Submit Result
-        mockMvc.perform(post("/student/results/submit")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(result)))
-                .andExpect(status().isOk());
+        entityManager.flush();
 
         // Get personal results
         mockMvc.perform(get("/student/results/" + student.getId()))

@@ -64,4 +64,11 @@ public class UserPrincipal implements UserDetails {
 		return true;
 	}
 
+	public static com.oep.entities.UserRole getUserRole(String role) {
+		if (role == null) {
+			return com.oep.entities.UserRole.ROLE_STUDENT;
+		}
+		return com.oep.entities.UserRole.valueOf(role);
+	}
+
 }
