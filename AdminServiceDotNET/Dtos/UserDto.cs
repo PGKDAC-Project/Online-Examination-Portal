@@ -24,7 +24,5 @@ namespace AdminServiceDotNET.Dtos
         public string status { get; set; }
         
         public long? batchId { get; set; }
-        public DateTime? lastLogin { get; set; }
-        public string joinDate { get; set; }
     }
 }

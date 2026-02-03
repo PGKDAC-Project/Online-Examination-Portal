@@ -1,6 +1,7 @@
 package com.oep.entities;
 
 import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,7 +18,9 @@ details JSON,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP*/
 @Entity
 @Table(name = "audit_logs")
-@AttributeOverride(name = "id", column = @Column(name = "log_id"))
+
+@AttributeOverrides({@AttributeOverride(name = "createdOn", column = @Column(name = "created_at")),
+		@AttributeOverride(name = "id", column = @Column(name = "log_id"))})
 @Getter
 @Setter
 public class AuditLogs extends BaseEntity {

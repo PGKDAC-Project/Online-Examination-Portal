@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AdminServiceDotNET.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDatabaseSchema : Migration
+    public partial class YourMigrationName : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -72,6 +72,8 @@ namespace AdminServiceDotNET.Migrations
                     batch_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     batch_name = table.Column<string>(type: "varchar(30)", maxLength: 30, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    description = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     start_date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     end_date = table.Column<DateTime>(type: "datetime(6)", nullable: false)

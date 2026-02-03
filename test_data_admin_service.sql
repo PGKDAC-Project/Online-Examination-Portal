@@ -30,3 +30,4 @@ INSERT INTO audit_logs (id, service_name, user_email, role, action, details, tim
 (3, 2, 'admin@oep.com', 0, 2, 'Created new course: Introduction to Programming', NOW()),
 (4, 0, 'john.instructor@oep.com', 1, 0, 'Instructor logged into the system', NOW()),
 (5, 1, 'admin@oep.com', 0, 3, 'Updated user status for alice.student@oep.com', NOW());
+

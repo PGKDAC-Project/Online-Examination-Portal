@@ -34,17 +34,17 @@ public class Courses extends BaseEntity {
 	@Column(nullable = false)
 	private String description;
 
-	@ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
+	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "course_syllabus", joinColumns = @JoinColumn(name = "course_id"))
 	@OrderBy("moduleNo ASC")
 	private List<Syllabus> syllabus = new ArrayList<>();
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "instructor_id")
 	@JsonIgnore
 	private User instructorDetails;
 
-	@ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
+	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "course_outcomes", joinColumns = @JoinColumn(name = "course_id"))
 	@Column(name = "outcome_text")
 	private List<String> outcomes = new ArrayList<>();

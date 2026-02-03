@@ -30,7 +30,18 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void createUser(CreateUserDto dto) {
 		String token = UUID.randomUUID().toString() + UUID.randomUUID().toString();
-		String userCode = "User@" + String.format("%4d", dto.getBatchId()).substring(1);
+		
+		String userCode = null;
+		
+		if(dto.getRole().equalsIgnoreCase("role_student")) {
+			userCode = "STU"+dto.getEmail().hashCode();
+		}
+		else if (dto.getRole().equalsIgnoreCase("role_instructor")) {
+			userCode = "INST"+dto.getEmail().hashCode();
+		}
+		else {
+			userCode = "ADM"+dto.getEmail().hashCode();
+		}
 		String normalizedEmail = dto.getEmail().toLowerCase();
 
 		if (userRepository.findByEmail(normalizedEmail).isPresent()) {

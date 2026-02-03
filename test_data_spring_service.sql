@@ -19,7 +19,7 @@ INSERT INTO courses (course_id, course_code, title, description, instructor_id, 
 (4, 'CS202', 'Web Development', 'Full stack web development using modern frameworks', 3, 'INACTIVE', NOW(), NOW());
 
 -- Insert course syllabus
-INSERT INTO course_syllabus (course_id, module_no, module_name, topics, duration_hours) VALUES
+INSERT INTO course_syllabus (course_id, module_number, module_title, module_description, estimated_hours) VALUES
 (1, 1, 'Java Basics', 'Variables, Data Types, Operators', 10),
 (1, 2, 'Control Structures', 'If-else, Loops, Switch', 8),
 (1, 3, 'Object Oriented Programming', 'Classes, Objects, Inheritance', 12),

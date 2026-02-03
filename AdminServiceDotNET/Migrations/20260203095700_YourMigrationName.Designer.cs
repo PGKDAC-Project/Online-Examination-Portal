@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdminServiceDotNET.Migrations
 {
     [DbContext(typeof(AdminDbContext))]
-    [Migration("20260126112226_InitialDatabaseSchema")]
-    partial class InitialDatabaseSchema
+    [Migration("20260203095700_YourMigrationName")]
+    partial class YourMigrationName
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,6 +44,11 @@ namespace AdminServiceDotNET.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("created_by_role");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("message");
+
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("expires_at");
@@ -51,11 +56,6 @@ namespace AdminServiceDotNET.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("is_active");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("message");
 
                     b.Property<string>("TargetRole")
                         .IsRequired()
@@ -134,6 +134,11 @@ namespace AdminServiceDotNET.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("varchar(30)")
                         .HasColumnName("batch_name");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("description");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)")
