@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.oep.custom_exceptions.InvalidInputException;
-import com.oep.dtos.ApiResponse;
 import com.oep.dtos.CreateUserDto;
 import com.oep.entities.Status;
 import com.oep.entities.User;
