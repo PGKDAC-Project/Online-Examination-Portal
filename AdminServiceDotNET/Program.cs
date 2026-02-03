@@ -30,6 +30,8 @@ namespace AdminServiceDotNET
                             .SelectMany(e => e.Value.Errors.Select(x => x.ErrorMessage))
                             .ToList();
                         
+                        Console.WriteLine("Model validation failed: " + string.Join(", ", errors));
+
                         var response = new
                         {
                             status = "ValidationFailed",

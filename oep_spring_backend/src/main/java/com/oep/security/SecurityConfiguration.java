@@ -39,7 +39,6 @@ public class SecurityConfiguration {
 	 * Add HttpSecurity as the dependency - to build sec filter chain
 	 */
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,17 +46,16 @@ public class SecurityConfiguration {
 		http.csrf(csrf -> csrf.disable());
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		http.authorizeHttpRequests(request ->
-			request
+		http.authorizeHttpRequests(request -> request
 				// Public endpoints
 				.requestMatchers(
-					"/auth/signin",
-					"/auth/forgot-password",
-					"/auth/reset-password/**",
-					"/v3/api-docs/**",
-					"/swagger-ui/**",
-					"/swagger-ui.html"
-				).permitAll()
+						"/auth/signin",
+						"/auth/forgot-password",
+						"/auth/reset-password/**",
+						"/v3/api-docs/**",
+						"/swagger-ui/**",
+						"/swagger-ui.html")
+				.permitAll()
 				// Internal API - No authentication (for cross-service communication)
 				.requestMatchers("/api/audit-logs").permitAll()
 				// Admin APIs
@@ -69,8 +67,7 @@ public class SecurityConfiguration {
 				// Logs APIs - Admin only
 				.requestMatchers("/logs/**").hasRole("ADMIN")
 				// All other requests require authentication
-				.anyRequest().authenticated()
-		);
+				.anyRequest().authenticated());
 
 		http.addFilterBefore(jwtAuthenticationFilter,
 				org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);

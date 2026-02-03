@@ -73,13 +73,22 @@ const BatchManagement = () => {
         }
 
         try {
+            const payload = {
+                batchName: formData.batchName,
+                // Append -01 to make it a valid ISO date string (YYYY-MM-01)
+                startDate: `${formData.startDate}-01`,
+                endDate: `${formData.endDate}-01`,
+                status: "Active",
+                description: ""
+            };
+
             if (formData.id) {
                 // Update existing batch
-                await updateBatch(formData.id, formData);
+                await updateBatch(formData.id, { ...payload, id: formData.id });
                 toast.success("Batch updated successfully");
             } else {
                 // Create new batch
-                await createBatch(formData);
+                await createBatch(payload);
                 toast.success("Batch created successfully");
             }
             setShowModal(false);
