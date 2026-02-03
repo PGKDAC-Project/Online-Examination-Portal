@@ -44,6 +44,7 @@ namespace AdminServiceDotNET.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResponse>> AddUser(UserDto userDto)
         {
+            Console.WriteLine($"AddUser called with: name={userDto.name}, email={userDto.email}, role={userDto.role}, status={userDto.status}, batchId={userDto.batchId}");
             string token = Request.Headers["Authorization"]
             .ToString()
             .Replace("Bearer ", "");

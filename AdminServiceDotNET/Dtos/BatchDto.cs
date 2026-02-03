@@ -5,7 +5,7 @@ namespace AdminServiceDotNET.Dtos
 {
     public class BatchDto
     {
-        public long Id { get; set; }
+        public long? Id { get; set; }
         
         [Required(ErrorMessage = "Batch name is required")]
         [StringLength(100, ErrorMessage = "Batch name must not exceed 100 characters")]
@@ -22,7 +22,6 @@ namespace AdminServiceDotNET.Dtos
         [JsonPropertyName("endDate")]
         public DateTime EndDate { get; set; }
         
-        [Required(ErrorMessage = "Status is required")]
         public string Status { get; set; }
     }
 }

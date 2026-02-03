@@ -24,16 +24,16 @@ public class Application {
 		System.out.println("creating n configuring model mapper");
 		ModelMapper mapper = new ModelMapper();
 		mapper.getConfiguration()
-		.setMatchingStrategy(MatchingStrategies.STRICT)
-		.setPropertyCondition(Conditions.isNotNull());		
+				.setMatchingStrategy(MatchingStrategies.STRICT)
+				.setPropertyCondition(Conditions.isNotNull());
 		return mapper;
 	}
-	
+
 	@Bean
 	PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
-	
+
 	@Bean
 	RestTemplate restTemplate() {
 		return new RestTemplate();

@@ -30,7 +30,9 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void createUser(CreateUserDto dto) {
 		String token = UUID.randomUUID().toString() + UUID.randomUUID().toString();
-		String userCode = "User@" + String.format("%4d", dto.getBatchId()).substring(1);
+		// Safe batchId handling for userCode
+		Long bId = (dto.getBatchId() != null) ? dto.getBatchId() : 0L;
+		String userCode = "User@" + String.format("%04d", bId);
 		String normalizedEmail = dto.getEmail().toLowerCase();
 
 		if (userRepository.findByEmail(normalizedEmail).isPresent()) {
@@ -40,11 +42,22 @@ public class UserServiceImpl implements UserService {
 		user.setUserName(dto.getName());
 		user.setEmail(normalizedEmail);
 		user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-		user.setRole(parseEnum(UserRole.class, dto.getRole()));
-		user.setStatus(parseEnum(Status.class, dto.getStatus()));
+
+		// Normalize role with prefix
+		String roleName = dto.getRole().toUpperCase();
+		if (!roleName.startsWith("ROLE_")) {
+			roleName = "ROLE_" + roleName;
+		}
+		user.setRole(parseEnum(UserRole.class, roleName));
+
+		// Normalize status
+		String statusName = dto.getStatus().toUpperCase();
+		user.setStatus(parseEnum(Status.class, statusName));
+
 		user.setActivationToken(token);
 		user.setIsFirstLogin(false);
 		user.setUserCode(userCode);
+		user.setBatchId(dto.getBatchId()); // Ensure batchId is set if present
 		userRepository.save(user);
 	}
 
@@ -56,17 +69,19 @@ public class UserServiceImpl implements UserService {
 					dto.setName(user.getUserName());
 					// Format role: ROLE_ADMIN -> Admin
 					String formattedRole = user.getRole().name().replace("ROLE_", "");
-					formattedRole = formattedRole.substring(0, 1).toUpperCase() + formattedRole.substring(1).toLowerCase();
+					formattedRole = formattedRole.substring(0, 1).toUpperCase()
+							+ formattedRole.substring(1).toLowerCase();
 					dto.setRole(formattedRole);
 					// Format status: ACTIVE -> Active
 					String formattedStatus = user.getStatus().name();
-					formattedStatus = formattedStatus.substring(0, 1).toUpperCase() + formattedStatus.substring(1).toLowerCase();
+					formattedStatus = formattedStatus.substring(0, 1).toUpperCase()
+							+ formattedStatus.substring(1).toLowerCase();
 					dto.setStatus(formattedStatus);
 					return dto;
 				})
 				.collect(Collectors.toList());
 	}
-	
+
 	@Override
 	public java.util.List<UserResponseDto> getUsersByRole(String role) {
 		// Handle both "instructor" and "ROLE_INSTRUCTOR" formats
@@ -80,11 +95,13 @@ public class UserServiceImpl implements UserService {
 					dto.setName(user.getUserName());
 					// Format role: ROLE_ADMIN -> Admin
 					String formattedRole = user.getRole().name().replace("ROLE_", "");
-					formattedRole = formattedRole.substring(0, 1).toUpperCase() + formattedRole.substring(1).toLowerCase();
+					formattedRole = formattedRole.substring(0, 1).toUpperCase()
+							+ formattedRole.substring(1).toLowerCase();
 					dto.setRole(formattedRole);
 					// Format status: ACTIVE -> Active
 					String formattedStatus = user.getStatus().name();
-					formattedStatus = formattedStatus.substring(0, 1).toUpperCase() + formattedStatus.substring(1).toLowerCase();
+					formattedStatus = formattedStatus.substring(0, 1).toUpperCase()
+							+ formattedStatus.substring(1).toLowerCase();
 					dto.setStatus(formattedStatus);
 					return dto;
 				})
@@ -112,8 +129,18 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(id).orElseThrow(() -> new InvalidInputException("User not found"));
 		user.setUserName(dto.getName());
 		user.setEmail(dto.getEmail().toLowerCase());
-		user.setRole(parseEnum(UserRole.class, dto.getRole()));
-		user.setStatus(parseEnum(Status.class, dto.getStatus()));
+
+		// Normalize role with prefix
+		String roleName = dto.getRole().toUpperCase();
+		if (!roleName.startsWith("ROLE_")) {
+			roleName = "ROLE_" + roleName;
+		}
+		user.setRole(parseEnum(UserRole.class, roleName));
+
+		// Normalize status
+		String statusName = dto.getStatus().toUpperCase();
+		user.setStatus(parseEnum(Status.class, statusName));
+
 		if (dto.getBatchId() != null) {
 			user.setBatchId(dto.getBatchId());
 		}

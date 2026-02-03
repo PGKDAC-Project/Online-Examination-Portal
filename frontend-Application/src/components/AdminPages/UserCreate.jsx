@@ -49,7 +49,14 @@ const UserCreate = () => {
     }
 
     try {
-      await createUser(user);
+      const payload = {
+        ...user,
+        batchId: user.batchId === "" ? null : Number(user.batchId),
+        password: user.password ? user.password : "Oep@123", // Default password meeting regex
+        status: user.status === "Active" ? "ACTIVE" : "INACTIVE",
+        role: "ROLE_" + user.role.toUpperCase() // Explicitly prefix role
+      };
+      await createUser(payload);
       // toast.success("User created successfully."); // Removed per requirement
       navigate("/admin/users");
     } catch (err) {
