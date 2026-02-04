@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using AdminServiceDotNET.Dtos;
 using AdminServiceDotNET.Service;
 using AdminServiceDotNET.Models;
+using System.Text.Json;
 
 namespace AdminServiceDotNET.Controllers
 {
@@ -29,17 +30,38 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApiResponse>> CreateAnnouncement(AnnouncementDto dto)
+        public async Task<ActionResult<ApiResponse>> CreateAnnouncement([FromBody] object requestBody)
         {
-            await announcementService.CreateAnnouncementAsync(dto);
-            await auditLogService.LogAsync(
-                                            ServiceName.ANNOUNCEMENT_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
-                                            UserRole.ROLE_ADMIN, 
-                                            AuditAction.POST_ANNOUNCEMENT, 
-                                            $"Posted announcement {dto.Title}"
-                                            );
-            return Ok(new ApiResponse { Status = 201, Message = "Announcement created successfully" });
+            try
+            {
+                // Parse the request manually to avoid validation issues
+                var json = System.Text.Json.JsonSerializer.Serialize(requestBody);
+                var dto = System.Text.Json.JsonSerializer.Deserialize<CreateAnnouncementDto>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                // Manual validation for required fields only
+                if (string.IsNullOrEmpty(dto.Title))
+                    return BadRequest(new { status = "ValidationFailed", message = "Title is required" });
+                
+                if (string.IsNullOrEmpty(dto.Description))
+                    return BadRequest(new { status = "ValidationFailed", message = "Description is required" });
+                
+                await announcementService.CreateAnnouncementAsync(dto, User);
+                await auditLogService.LogAsync(
+                                                ServiceName.ANNOUNCEMENT_SERVICE, 
+                                                User.Identity?.Name ?? "Admin", 
+                                                UserRole.ROLE_ADMIN, 
+                                                AuditAction.POST_ANNOUNCEMENT, 
+                                                $"Posted announcement {dto.Title}"
+                                                );
+                return Ok(new ApiResponse { Status = 201, Message = "Announcement created successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { status = "Error", message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]

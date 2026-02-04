@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class CreateUserDto {
+public class UpdateUserDto {
 	@NotBlank(message = "Username cannot be blank.")
 	private String name;
 	@NotBlank(message = "Email cannot be blank.")
@@ -15,6 +15,5 @@ public class CreateUserDto {
 	private String role;
 	@NotBlank
 	private String status;
-	private String password; // Optional - will generate default if not provided
 	private Long batchId;
 }

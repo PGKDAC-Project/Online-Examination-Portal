@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.oep.dtos.ApiResponse;
 import com.oep.dtos.CreateUserDto;
+import com.oep.dtos.UpdateUserDto;
 import com.oep.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,7 +51,7 @@ public class UserController {
 
 	@PutMapping("/admin/users/{id}")
 	@Operation(description = "Update User")
-	public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody @Valid CreateUserDto dto) {
+	public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody @Valid UpdateUserDto dto) {
 		userService.updateUser(id, dto);
 		return ResponseEntity.ok(new ApiResponse("success", "user updated successfully"));
 	}

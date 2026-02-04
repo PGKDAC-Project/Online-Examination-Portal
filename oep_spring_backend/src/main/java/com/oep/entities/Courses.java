@@ -14,6 +14,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderBy;
 import lombok.Getter;
@@ -39,10 +41,14 @@ public class Courses extends BaseEntity {
 	@OrderBy("moduleNo ASC")
 	private List<Syllabus> syllabus = new ArrayList<>();
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "instructor_id")
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(
+		name = "course_instructors",
+		joinColumns = @JoinColumn(name = "course_id"),
+		inverseJoinColumns = @JoinColumn(name = "instructor_id")
+	)
 	@JsonIgnore
-	private User instructorDetails;
+	private List<User> instructors = new ArrayList<>();
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "course_outcomes", joinColumns = @JoinColumn(name = "course_id"))

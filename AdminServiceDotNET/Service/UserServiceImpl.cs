@@ -44,7 +44,7 @@ namespace AdminServiceDotNET.Service
 
         }
 
-        public async Task UpdateUserAsync(long id, UserDto dto, string jwtToken)
+        public async Task UpdateUserAsync(long id, UpdateUserDto dto, string jwtToken)
         {
             AddAuth(jwtToken);
             var springBackendUrl = "http://127.0.0.1:8080/oep";

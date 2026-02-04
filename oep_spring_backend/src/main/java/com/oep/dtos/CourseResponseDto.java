@@ -13,7 +13,7 @@ public class CourseResponseDto {
     private String title;
     private String description;
     private List<SyllabusDto> syllabus;
-    private InstructorDto instructorDetails;
+    private List<InstructorDto> instructors;
     private List<String> outcomes;
     private String status;
     

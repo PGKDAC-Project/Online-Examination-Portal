@@ -17,6 +17,9 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.Set;
+
 import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
@@ -46,7 +49,7 @@ class ApiIntegrationTest {
     private static String instructorToken;
     private static String studentToken;
     private static Long adminId;
-    private static Long instructorId;
+    private static Set<Long> instructorId;
     private static Long studentId;
     private static Long courseId;
 
@@ -73,7 +76,7 @@ class ApiIntegrationTest {
             instructor.setStatus(Status.ACTIVE);
             instructor.setUserCode("INS001");
             instructor = userRepository.save(instructor);
-            instructorId = instructor.getId();
+            //instructorId = instructor.getId();
 
             // Create student user
             User student = new User();
@@ -269,7 +272,7 @@ class ApiIntegrationTest {
         dto.setCourseCode("CS101");
         dto.setTitle("Introduction to Computer Science");
         dto.setDescription("Basic CS course");
-        dto.setInstructorId(instructorId);
+        dto.setInstructorIds(instructorId);
 
         MvcResult result = mockMvc.perform(post("/admin/courses")
                 .header("Authorization", "Bearer " + adminToken)
@@ -288,7 +291,7 @@ class ApiIntegrationTest {
     void testCreateCourse_ValidationFailure_MissingTitle() throws Exception {
         CourseRequestDto dto = new CourseRequestDto();
         dto.setCourseCode("CS102");
-        dto.setInstructorId(instructorId);
+        dto.setInstructorIds(instructorId);
 
         mockMvc.perform(post("/admin/courses")
                 .header("Authorization", "Bearer " + adminToken)

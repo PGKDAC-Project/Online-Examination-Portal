@@ -1,6 +1,8 @@
 package com.oep.dtos;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import com.oep.entities.Syllabus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,8 +22,9 @@ public class CourseRequestDto {
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
     
-    @NotNull(message = "Instructor ID is required")
-    private Long instructorId;
+    private Set<Long> instructorIds = new HashSet<>(); // Changed to HashSet for uniqueness
+    
+    private String status; // Optional - will default to ACTIVE if not provided
     
     private List<Syllabus> syllabus;
 }

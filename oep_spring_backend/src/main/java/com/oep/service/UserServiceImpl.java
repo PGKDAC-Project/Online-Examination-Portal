@@ -1,10 +1,12 @@
 package com.oep.service;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import com.oep.dtos.UserResponseDto;
+import com.oep.dtos.UpdateUserDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,13 @@ public class UserServiceImpl implements UserService {
 		else {
 			userCode = "ADM"+dto.getEmail().hashCode();
 		}
+		
+		// Generate default password if not provided
+		String password = dto.getPassword();
+		if (password == null || password.trim().isEmpty()) {
+			password = generateDefaultPassword(dto.getName(), userCode);
+		}
+		
 		String normalizedEmail = dto.getEmail().toLowerCase();
 
 		if (userRepository.findByEmail(normalizedEmail).isPresent()) {
@@ -49,7 +58,7 @@ public class UserServiceImpl implements UserService {
 		User user = modelMapper.map(dto, User.class);
 		user.setUserName(dto.getName());
 		user.setEmail(normalizedEmail);
-		user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+		user.setPasswordHash(passwordEncoder.encode(password));
 
 		// Normalize role with prefix
 		String roleName = dto.getRole().toUpperCase();
@@ -133,7 +142,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void updateUser(Long id, CreateUserDto dto) {
+	public void updateUser(Long id, UpdateUserDto dto) {
 		User user = userRepository.findById(id).orElseThrow(() -> new InvalidInputException("User not found"));
 		user.setUserName(dto.getName());
 		user.setEmail(dto.getEmail().toLowerCase());
@@ -166,5 +175,16 @@ public class UserServiceImpl implements UserService {
 		} catch (Exception e) {
 			throw new InvalidInputException("Invalid value for " + enumClass.getSimpleName() + ": " + value);
 		}
+	}
+	
+	private String generateDefaultPassword(String name, String userCode) {
+		// Extract first name (first word before space)
+		String firstName = name.trim().split("\\s+")[0];
+		
+		// Extract only numerical values from userCode
+		String numericPart = userCode.replaceAll("[^0-9]", "");
+		
+		// Generate password: FirstName@NumericPart
+		return firstName + "@" + numericPart;
 	}
 }

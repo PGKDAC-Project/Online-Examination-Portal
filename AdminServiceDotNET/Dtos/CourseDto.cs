@@ -18,9 +18,7 @@ namespace AdminServiceDotNET.Dtos
         [StringLength(1000, ErrorMessage = "Description must not exceed 1000 characters")]
         public string Description { get; set; }
         
-        [Required(ErrorMessage = "Instructor ID is required")]
-        [Range(1, long.MaxValue, ErrorMessage = "Instructor ID must be greater than 0")]
-        public long InstructorId { get; set; }
+        public HashSet<long> InstructorIds { get; set; } = new HashSet<long>();
         
         public string Status { get; set; }
         public List<SyllabusDto> Syllabus { get; set; } = new List<SyllabusDto>();

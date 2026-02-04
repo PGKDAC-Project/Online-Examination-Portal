@@ -3,9 +3,14 @@ package com.oep.service;
 import java.util.List;
 import com.oep.entities.Courses;
 import com.oep.dtos.CourseRequestDto;
+import com.oep.dtos.CourseResponseDto;
 
 public interface CourseService {
 	List<Courses> getAllCourses();
+	
+	List<CourseResponseDto> getAllCoursesDto();
+	
+	CourseResponseDto mapToDto(Courses course);
 
 	List<Courses> getCoursesByInstructor(Long instructorId);
 

@@ -55,13 +55,19 @@ const AnnouncementManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await createAnnouncement(formData);
+            // Prepare the data, converting empty expiryDate to null
+            const submitData = {
+                ...formData,
+                expiryDate: formData.expiryDate || null
+            };
+            await createAnnouncement(submitData);
             toast.success("Announcement posted successfully");
             setShowModal(false);
             setFormData({ title: "", description: "", targetRole: "All", targetBatch: "", expiryDate: "" });
             loadData();
         } catch (err) {
-            toast.error("Failed to create announcement");
+            console.error('Error creating announcement:', err);
+            toast.error(err.message || "Failed to create announcement");
         }
     };
 

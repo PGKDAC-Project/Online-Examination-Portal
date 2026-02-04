@@ -59,7 +59,7 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse>> UpdateUser(long id, UserDto userDto)
+        public async Task<ActionResult<ApiResponse>> UpdateUser(long id, UpdateUserDto userDto)
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             await userService.UpdateUserAsync(id, userDto, token);

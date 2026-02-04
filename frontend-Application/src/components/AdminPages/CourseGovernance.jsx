@@ -21,7 +21,8 @@ const CourseGovernance = () => {
     courseCode: "",
     title: "",
     description: "",
-    instructorId: "",
+    instructorIds: [],
+    status: "Active",
     syllabus: []
   });
   const [error, setError] = useState("");
@@ -38,7 +39,11 @@ const CourseGovernance = () => {
         getAllInstructors()
       ]);
       setCourses(Array.isArray(courseData) ? courseData : []);
-      setInstructors(Array.isArray(instructorData) ? instructorData : []);
+      // Filter to show only users with instructor role
+      const filteredInstructors = Array.isArray(instructorData) 
+        ? instructorData.filter(user => user.role && user.role.toLowerCase() === 'instructor')
+        : [];
+      setInstructors(filteredInstructors);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load course data");
@@ -61,7 +66,9 @@ const CourseGovernance = () => {
     const data = filteredCourses.map(c => ({
       "Code": c.courseCode,
       "Title": c.title,
-      "Instructor": c.instructorDetails?.name || "N/A",
+      "Instructors": c.instructors && c.instructors.length > 0 
+        ? c.instructors.map(inst => inst.name || inst.userName).join(", ")
+        : "No instructors assigned",
       "Modules": (c.syllabus || []).length,
       "Status": c.status
     }));
@@ -69,11 +76,13 @@ const CourseGovernance = () => {
   };
 
   const handleExportPDF = () => {
-    const columns = ["Code", "Title", "Instructor", "Modules", "Status"];
+    const columns = ["Code", "Title", "Instructors", "Modules", "Status"];
     const data = filteredCourses.map(c => ({
       "Code": c.courseCode,
       "Title": c.title,
-      "Instructor": c.instructorDetails?.name || "N/A",
+      "Instructors": c.instructors && c.instructors.length > 0 
+        ? c.instructors.map(inst => inst.name || inst.userName).join(", ")
+        : "No instructors assigned",
       "Modules": (c.syllabus || []).length,
       "Status": c.status
     }));
@@ -95,7 +104,8 @@ const CourseGovernance = () => {
       courseCode: "",
       title: "",
       description: "",
-      instructorId: "",
+      instructorIds: [],
+      status: "Active",
       syllabus: [{ moduleNo: 1, moduleTitle: "", moduleDescription: "", estimatedHrs: 0 }] // Start with one module
     });
     setError("");
@@ -129,20 +139,15 @@ const CourseGovernance = () => {
     e.preventDefault();
     setError("");
 
-    // Validation
-    if (!formData.instructorId) {
-      setError("Please select an instructor");
-      return;
-    }
-
-    const selectedInstructor = instructors.find(i => String(i.id) === String(formData.instructorId));
-
     // Prepare payload matching Entity
     const payload = {
       courseCode: formData.courseCode,
       title: formData.title,
       description: formData.description,
-      instructorId: Number(formData.instructorId),
+      instructorIds: formData.instructorIds.length > 0 
+        ? formData.instructorIds.map(id => Number(id)).filter(id => id > 0)
+        : [],
+      status: formData.status,
       syllabus: formData.syllabus.map(s => ({
         ...s,
         estimatedHrs: Number(s.estimatedHrs),
@@ -219,7 +224,7 @@ const CourseGovernance = () => {
               <tr>
                 <th>Code</th>
                 <th>Title</th>
-                <th>Instructor</th>
+                <th>Instructors</th>
                 <th>Modules</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -238,7 +243,12 @@ const CourseGovernance = () => {
                       <div className="fw-bold">{course.title}</div>
                       <div className="small text-muted text-truncate" style={{ maxWidth: '200px' }}>{course.description}</div>
                     </td>
-                    <td>{course.instructorDetails?.name || "N/A"}</td>
+                    <td>
+                      {course.instructors && course.instructors.length > 0 
+                        ? course.instructors.map(inst => inst.name || inst.userName).join(", ")
+                        : "No instructors assigned"
+                      }
+                    </td>
                     <td>
                       <span className="badge bg-secondary rounded-pill">
                         {(course.syllabus || []).length} Modules
@@ -309,21 +319,61 @@ const CourseGovernance = () => {
                     </div>
                   </div>
 
-                  <div className="mb-3">
-                    <label className="form-label fw-medium">Instructor</label>
-                    <select
-                      className="form-select form-control-custom"
-                      value={formData.instructorId}
-                      onChange={e => setFormData({ ...formData, instructorId: e.target.value })}
-                      required
-                    >
-                      <option value="">Select Instructor...</option>
-                      {instructors.map(inst => (
-                        <option key={inst.id} value={inst.id}>
-                          {inst.name} ({inst.email})
-                        </option>
-                      ))}
-                    </select>
+                  <div className="row g-3 mb-3">
+                    <div className="col-md-6">
+                      <label className="form-label fw-medium">Instructors</label>
+                      <div className="position-relative">
+                        <select
+                          className="form-select form-control-custom"
+                          multiple
+                          value={formData.instructorIds}
+                          onChange={e => {
+                            const selectedIds = Array.from(e.target.selectedOptions, option => option.value);
+                            setFormData({ ...formData, instructorIds: selectedIds });
+                          }}
+                          style={{ minHeight: '120px' }}
+                        >
+                          {instructors.map(inst => (
+                            <option key={inst.id} value={inst.id}>
+                              {inst.name} ({inst.email})
+                            </option>
+                          ))}
+                        </select>
+                        <small className="text-muted d-block mt-1">
+                          Hold Ctrl/Cmd and click to select multiple instructors
+                        </small>
+                        {formData.instructorIds.length > 0 && (
+                          <div className="mt-2">
+                            <small className="text-success fw-medium">
+                              Selected: {formData.instructorIds.length} instructor(s)
+                            </small>
+                            <div className="d-flex flex-wrap gap-1 mt-1">
+                              {formData.instructorIds.map(id => {
+                                const instructor = instructors.find(i => String(i.id) === String(id));
+                                return instructor ? (
+                                  <span key={id} className="badge bg-primary">
+                                    {instructor.name}
+                                  </span>
+                                ) : null;
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-medium">Status</label>
+                      <select
+                        className="form-select form-control-custom"
+                        value={formData.status}
+                        onChange={e => setFormData({ ...formData, status: e.target.value })}
+                        required
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Suspended">Suspended</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="mb-4">
