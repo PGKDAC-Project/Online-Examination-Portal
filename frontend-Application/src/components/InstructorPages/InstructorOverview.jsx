@@ -104,7 +104,7 @@ const InstructorAnnouncements = () => {
           const today = new Date().toISOString().split('T')[0];
           // Admin announcements (Role=All or Role=Instructor)
           const relevant = data.filter(a =>
-            (a.targetRole === 'All' || a.targetRole === 'Instructor') &&
+            (a.targetRole?.toLowerCase() === 'all' || a.targetRole?.toLowerCase() === 'instructor') &&
             (!a.expiryDate || a.expiryDate >= today)
           );
           setList(relevant);
