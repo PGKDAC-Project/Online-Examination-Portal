@@ -9,7 +9,6 @@ namespace AdminServiceDotNET.Controllers
 {
     [ApiController]
     [Route("admin/announcements")]
-    [Authorize(Roles = "ROLE_ADMIN")]
     public class AnnouncementController : ControllerBase
     {
         private readonly IAnnouncementService announcementService;
@@ -22,6 +21,7 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ROLE_ADMIN,ROLE_STUDENT,ROLE_INSTRUCTOR")]
         public async Task<ActionResult<IEnumerable<AnnouncementDto>>> GetAnnouncements()
         {
             var list = await announcementService.GetAllAnnouncementsAsync();
@@ -29,6 +29,7 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ROLE_ADMIN")]
         public async Task<ActionResult<ApiResponse>> CreateAnnouncement(AnnouncementDto dto)
         {
             await announcementService.CreateAnnouncementAsync(dto);
@@ -43,6 +44,7 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "ROLE_ADMIN")]
         public async Task<ActionResult<ApiResponse>> DeleteAnnouncement(long id)
         {
             await announcementService.DeleteAnnouncementAsync(id);

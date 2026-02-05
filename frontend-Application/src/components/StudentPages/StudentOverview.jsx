@@ -13,10 +13,10 @@ function StudentOverview() {
         try {
             const data = await getAllAnnouncements();
             if (Array.isArray(data)) {
-                // Filter for Student or All, and check expiry if needed (assuming backend might return expired)
+                // Filter for Student or All, and check expiry if needed
                 const today = new Date().toISOString().split('T')[0];
                 const relevant = data.filter(a =>
-                    (a.targetRole === 'All' || a.targetRole === 'Student') &&
+                    (a.targetRole?.toLowerCase() === 'all' || a.targetRole?.toLowerCase() === 'student') &&
                     (!a.expiryDate || a.expiryDate >= today)
                 );
                 setAnnouncements(relevant);
