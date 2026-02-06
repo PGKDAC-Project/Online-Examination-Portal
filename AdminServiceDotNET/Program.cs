@@ -16,7 +16,8 @@ namespace AdminServiceDotNET
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.WebHost.UseUrls("http://localhost:7097");
+            var port = Environment.GetEnvironmentVariable("PORT") ?? "7097";
+            builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
             // Add services to the container.
 
@@ -158,7 +159,8 @@ namespace AdminServiceDotNET
                     policy =>
                     {
                         var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
-                        policy.WithOrigins(frontendUrl)
+                        policy.WithOrigins(frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173")
+                              .SetIsOriginAllowed(_ => true) // Allow any for production proxy compatibility
                               .AllowAnyHeader()
                               .AllowAnyMethod()
                               .AllowCredentials();

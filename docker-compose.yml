@@ -8,7 +8,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: student_instructor_service_db
-      MYSQL_USER: Ankit
+      MYSQL_USER: kd2-harsh-92448
       MYSQL_PASSWORD: manager
     ports:
       - "3306:3306"
@@ -24,7 +24,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: admin_service_db
-      MYSQL_USER: Ankit
+      MYSQL_USER: kd2-harsh-92448
       MYSQL_PASSWORD: manager
     ports:
       - "3307:3306"
@@ -41,7 +41,7 @@ services:
     container_name: oep_spring_backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql_spring:3306/student_instructor_service_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: Ankit
+      SPRING_DATASOURCE_USERNAME: kd2-harsh-92448
       SPRING_DATASOURCE_PASSWORD: manager
       JWT_SECRET: 617b7c292a0698a897e6ff73324285be2ca049857c8802e26a4cce2214d899c4
     ports:
@@ -58,10 +58,10 @@ services:
       dockerfile: Dockerfile
     container_name: oep_admin_service
     environment:
-      ConnectionStrings__AdminDb: "server=mysql_admin;database=admin_service_db;user=Ankit;password=manager"
+      ConnectionStrings__AdminDb: "server=mysql_admin;database=admin_service_db;user=kd2-harsh-92448;password=manager"
       Jwt__Secret: "617b7c292a0698a897e6ff73324285be2ca049857c8802e26a4cce2214d899c4"
       SpringBackendUrl: "http://spring_backend:8080/oep"
-      FrontendUrl: "http://localhost:5173"
+      FrontendUrl: "http://localhost:5173" # Nginx serves on this port
     ports:
       - "7097:7097"
     depends_on:
