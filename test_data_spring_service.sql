@@ -4,7 +4,7 @@ USE student_instructor_service_db;
 
 -- Insert test users
 INSERT INTO users (user_id, user_name, user_code, email, password_hash, phone_number, role, status, is_first_login, batch_id, created_on, last_updated) VALUES
-(1, 'Admin User', 'ADM001', 'admin@oep.com', '$2a$10$7zB3l9z.X7/0Y6pS7lH8Q.g8D5Xl8o5Z6m9Xl8o5Z6m9Xl8o5Z6m9', '9876543210', 'ROLE_ADMIN', 'ACTIVE', false, NULL, NOW(), NOW()),
+(1, 'Admin User', 'ADM001', 'admin@oep.com', '$2a$10$byP/ZkkC2m6cdMq3xcg53uHwRBuclXHFZ70LWeRmemubbCittLDAa', '9876543210', 'ROLE_ADMIN', 'ACTIVE', false, NULL, NOW(), NOW()),
 (2, 'John Instructor', 'INS001', 'john.instructor@oep.com', '$2a$10$N.zmdr9k7uOCQb97.AnUu.Nv.QjYLR3h8jrJb2hVkfvhZZbdDeqze', '9876543211', 'ROLE_INSTRUCTOR', 'ACTIVE', false, 1, NOW(), NOW()),
 (3, 'Jane Instructor', 'INS002', 'jane.instructor@oep.com', '$2a$10$N.zmdr9k7uOCQb97.AnUu.Nv.QjYLR3h8jrJb2hVkfvhZZbdDeqze', '9876543212', 'ROLE_INSTRUCTOR', 'ACTIVE', false, 1, NOW(), NOW()),
 (4, 'Alice Student', 'STU001', 'alice.student@oep.com', '$2a$10$N.zmdr9k7uOCQb97.AnUu.Nv.QjYLR3h8jrJb2hVkfvhZZbdDeqze', '9876543213', 'ROLE_STUDENT', 'ACTIVE', false, 1, NOW(), NOW()),
