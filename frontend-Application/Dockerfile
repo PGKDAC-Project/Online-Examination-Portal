@@ -11,6 +11,12 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Set Build Arguments for Vite (Required for production URLs)
+ARG VITE_API_BASE_URL
+ARG VITE_ADMIN_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_ADMIN_API_BASE_URL=$VITE_ADMIN_API_BASE_URL
+
 # Build application
 RUN npm run build
 
