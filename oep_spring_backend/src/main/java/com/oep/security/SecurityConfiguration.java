@@ -81,10 +81,17 @@ public class SecurityConfiguration {
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		// Explicit origins are required when allowCredentials is true
+		// Allow local dev and production URL from env var
+		// Default to the new Render URL if not set
+		String frontendUrl = System.getenv("FRONTEND_URL");
+		if (frontendUrl == null) {
+			frontendUrl = "https://oep-frontend.onrender.com";
+		}
+
 		configuration.setAllowedOrigins(Arrays.asList(
 				"http://localhost:5173",
 				"http://127.0.0.1:5173",
+				frontendUrl,
 				"https://online-examination-portal-eight.vercel.app"));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("*"));
