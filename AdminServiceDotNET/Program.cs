@@ -159,8 +159,12 @@ namespace AdminServiceDotNET
                     policy =>
                     {
                         var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
-                        policy.WithOrigins(frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173")
-                              .SetIsOriginAllowed(_ => true) // Allow any for production proxy compatibility
+                        policy.WithOrigins(
+                                frontendUrl, 
+                                "http://localhost:5173", 
+                                "http://127.0.0.1:5173",
+                                "https://online-examination-portal-eight.vercel.app"
+                              )
                               .AllowAnyHeader()
                               .AllowAnyMethod()
                               .AllowCredentials();

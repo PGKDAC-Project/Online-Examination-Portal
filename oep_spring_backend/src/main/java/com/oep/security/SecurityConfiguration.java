@@ -81,9 +81,11 @@ public class SecurityConfiguration {
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		// Allow local development and wildcard for production (will be proxy-handled by
-		// Nginx)
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://127.0.0.1:5173", "*"));
+		// Explicit origins are required when allowCredentials is true
+		configuration.setAllowedOrigins(Arrays.asList(
+				"http://localhost:5173",
+				"http://127.0.0.1:5173",
+				"https://online-examination-portal-eight.vercel.app"));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("*"));
 		configuration.setExposedHeaders(Arrays.asList("*"));
