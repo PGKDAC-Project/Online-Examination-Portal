@@ -583,11 +583,7 @@ Online-Examination-Portal/
 │   ├── Program.cs                # Application entry point
 │   └── AdminServiceDotNET.csproj # Project file
 │
-└── Project Archive/              # Documentation & scripts
-    ├── docker-compose.yml        # Docker orchestration
-    ├── backend_api_list.md       # API documentation
-    ├── project_outline.md        # Project overview
-    └── *.sql                     # Database scripts
+
 ```
 
 ---
