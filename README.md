@@ -622,27 +622,6 @@ Contributions are welcome! Please follow these guidelines:
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## 👥 Authors
-
-Developed as part of an enterprise-grade examination management system.
-
----
-
-## 🙏 Acknowledgments
-
-- Spring Boot and Spring Security teams
-- ASP.NET Core team
-- React and Vite communities
-- All open-source contributors
-
----
-
 ## 📞 Support
 
 For issues, questions, or contributions, please open an issue in the GitHub repository.
