@@ -121,7 +121,8 @@ function App() {
               <Route path="/student/exams/:examId/result" element={<ExamResult />} />
               <Route path="/student/exam-history" element={<ExamHistory />} />
               <Route path="/student/results" element={<ResultsList />} />
-              <Route path="/student/results/:examId/detailed" element={<DetailedScorecard />} />
+              <Route path="/student/results/:resultId" element={<StudentExamResult />} />
+              <Route path="/student/results/:resultId/detailed" element={<DetailedScorecard />} />
               <Route path="/student/change-password" element={<ChangePassword />} />
             </Route>
             <Route path="/student/exams/:examId/attempt" element={<AttemptExam />} />
@@ -147,6 +148,7 @@ function App() {
 
               <Route path="/instructor/results" element={<ResultEvaluation />} />
               <Route path="/instructor/live-exams" element={<LiveExamMonitoring />} />
+              <Route path="/instructor/exams/:examId/monitor" element={<LiveExamMonitoring />} />
 
               <Route path="/instructor/question-bank" element={<QuestionBankManagement />} />
               <Route path="/instructor/question-bank/create" element={<AddQuestion />} />

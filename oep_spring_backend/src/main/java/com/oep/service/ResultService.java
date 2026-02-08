@@ -13,4 +13,8 @@ public interface ResultService {
     ExamResults getResultById(Long id);
 
     ExamResults submitResult(ExamResults result);
+    
+    List<com.oep.entities.StudentAnswer> getStudentAnswersByResultId(Long resultId);
+    
+    List<com.oep.entities.ExamQuestions> getExamQuestions(Long examId);
 }

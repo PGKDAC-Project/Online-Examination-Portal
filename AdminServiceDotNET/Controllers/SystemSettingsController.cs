@@ -8,8 +8,7 @@ namespace AdminServiceDotNET.Controllers
 {
     [ApiController]
     [Route("admin/settings")]
-    [Authorize(Roles = "ROLE_ADMIN")]
-    public class SystemSettingsController : ControllerBase
+    public class SystemSettingsController : BaseController
     {
         private readonly ISystemSettingsService systemSettingService;
         private readonly IAuditLogService auditLogService;
@@ -21,17 +20,19 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ROLE_ADMIN,ROLE_INSTRUCTOR,ROLE_STUDENT")]
         public async Task<ActionResult<SystemSettingsDto>> GetSettings()
         {
             return Ok(await systemSettingService.GetSettingsAsync());
         }
 
         [HttpPut]
+        [Authorize(Roles = "ROLE_ADMIN")]
         public async Task<ActionResult<ApiResponse>> UpdateSettings(SystemSettingsDto dto)
         {
             await systemSettingService.UpdateSettingsAsync(dto);
             await auditLogService.LogAsync(ServiceName.SYSTEM_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
+                                            GetUserEmail(), 
                                             UserRole.ROLE_ADMIN, 
                                             AuditAction.LOGIN, 
                                             $"Updated system settings");

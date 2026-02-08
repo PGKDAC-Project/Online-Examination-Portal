@@ -31,7 +31,9 @@ const AnnouncementManagement = () => {
                 getAllBatches()
             ]);
             setAnnouncements(Array.isArray(data) ? data : []);
-            setBatches(Array.isArray(batchList) ? batchList : []);
+            // Filter only active batches
+            const activeBatches = Array.isArray(batchList) ? batchList.filter(b => b.isActive) : [];
+            setBatches(activeBatches);
         } catch (err) {
             console.error(err);
             toast.error("Failed to load announcements");
@@ -81,7 +83,9 @@ const AnnouncementManagement = () => {
             </div>
 
             <div className="row g-4">
-                {loading ? <div className="col-12 text-center p-5">Loading...</div> : announcements.map(anno => (
+                {loading ? <div className="col-12 text-center p-5">Loading...</div> : announcements.map(anno => {
+                    const isExpired = anno.expiryDate && new Date(anno.expiryDate) < new Date();
+                    return (
                     <div key={anno.id} className="col-md-6 col-lg-4">
                         <div className="card-custom h-100 shadow-sm border-0 bg-white">
                             <div className="card-body p-4">
@@ -95,7 +99,10 @@ const AnnouncementManagement = () => {
                                 <div className="mb-3">
                                     <span className="badge bg-light text-secondary me-2 border">{anno.createdAt ? new Date(anno.createdAt).toLocaleDateString() : ""}</span>
                                     <span className="badge bg-primary bg-opacity-10 text-primary">Target: {anno.targetRole} {anno.targetBatch && `(${anno.targetBatch})`}</span>
-                                    {anno.expiryDate && (
+                                    {isExpired && (
+                                        <span className="badge bg-danger ms-2">Expired</span>
+                                    )}
+                                    {anno.expiryDate && !isExpired && (
                                         <div className="mt-1 small text-muted">Expires: {new Date(anno.expiryDate).toLocaleDateString()}</div>
                                     )}
                                 </div>
@@ -103,7 +110,7 @@ const AnnouncementManagement = () => {
                             </div>
                         </div>
                     </div>
-                ))}
+                )})}
                 {!loading && announcements.length === 0 && (
                     <div className="col-12 text-center text-muted p-5">No announcements yet.</div>
                 )}

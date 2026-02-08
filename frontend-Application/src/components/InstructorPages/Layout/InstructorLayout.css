@@ -151,8 +151,10 @@ body {
 /* ===== CONTENT ===== */
 .instructor-content {
   padding: 1.5rem;
+  padding-bottom: 3rem;
   overflow-y: auto;
   background: var(--instructor-bg);
+  flex: 1;
 }
 
 body.dark .instructor-content {

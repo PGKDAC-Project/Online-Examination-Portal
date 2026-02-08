@@ -2,12 +2,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useExamSecurity } from "./useExamSecurity";
 import { useFullscreenEnforcement } from "./useFullscreenEnforcement";
-import { startExam as fetchExamQuestions, submitExam as fetchSubmitExam } from "../../../services/student/studentService";
+import { startExam, getExamQuestions, submitExam as fetchSubmitExam, getAvailableExams } from "../../../services/student/studentService";
 import ReviewAnswers from "./ReviewAnswers";
 import "./AttemptExam.css";
 import { toast } from "react-toastify";
 
-const AttemptExam = ({ duration = 60 }) => {
+const AttemptExam = () => {
   const { examId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -15,11 +15,12 @@ const AttemptExam = ({ duration = 60 }) => {
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [examDuration, setExamDuration] = useState(60);
 
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState({});
   const [review, setReview] = useState([]);
-  const [timeLeft, setTimeLeft] = useState(duration * 60);
+  const [timeLeft, setTimeLeft] = useState(examDuration * 60);
   const [isReviewing, setIsReviewing] = useState(false);
 
   /* ================= SUBMIT LOGIC ================= */
@@ -33,12 +34,13 @@ const AttemptExam = ({ duration = 60 }) => {
     Object.keys(answers).forEach(index => {
         const question = questions[index];
         if (question) {
-            // For multiple choice, join array with comma or send as is? 
-            // Backend expects String (JSON). studentService sends Object.
-            // Backend converts Object value to String.
-            // If it's an array (multiple choice), toString() will be "a,b".
-            // That works for now.
-            formattedAnswers[question.id] = answers[index];
+            const answer = answers[index];
+            // Convert answer to JSON string
+            if (typeof answer === 'object') {
+                formattedAnswers[question.id] = JSON.stringify(answer);
+            } else {
+                formattedAnswers[question.id] = answer;
+            }
         }
     });
 
@@ -117,9 +119,26 @@ const AttemptExam = ({ duration = 60 }) => {
 
     const loadQuestions = async () => {
       try {
-        const response = await fetchExamQuestions(examId, examPassword);
-        const qList = Array.isArray(response) ? response : (response.questions || []);
-        setQuestions(qList);
+        // First verify password
+        await startExam(examId, examPassword);
+        // Get exam details for duration
+        const examDetails = await getAvailableExams();
+        const exam = examDetails.find(e => e.id === parseInt(examId));
+        if (exam && exam.duration) {
+          setExamDuration(exam.duration);
+          setTimeLeft(exam.duration * 60);
+        }
+        // Then fetch questions
+        const qList = await getExamQuestions(examId);
+        // Sanitize questions - convert any object options to arrays
+        const sanitizedQuestions = qList.map(q => {
+          if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
+            // Convert object to array of values
+            q.options = Object.values(q.options);
+          }
+          return q;
+        });
+        setQuestions(sanitizedQuestions);
       } catch (err) {
         toast.error("Failed to start exam. " + err.message);
         navigate("/student/exams");
@@ -169,13 +188,19 @@ const AttemptExam = ({ duration = 60 }) => {
   }
 
   const handleAnswerChange = (option) => {
-    if (currentQuestion.type === "multiple") {
+    if (currentQuestion.type === "MULTIPLE_SELECT" || currentQuestion.type === "multiple") {
       const prev = answers[current] || [];
       const updated = prev.includes(option)
         ? prev.filter((o) => o !== option)
         : [...prev, option];
 
       setAnswers((prevState) => ({ ...prevState, [current]: updated }));
+    } else if (currentQuestion.type === "MATCHING") {
+      // For matching, option is in format "leftItem:rightItem"
+      setAnswers((prevState) => ({
+        ...prevState,
+        [current]: { ...(prevState[current] || {}), ...option }
+      }));
     } else {
       setAnswers((prevState) => ({ ...prevState, [current]: option }));
     }
@@ -244,25 +269,51 @@ const AttemptExam = ({ duration = 60 }) => {
           <p>{currentQuestion.questionText || currentQuestion.question}</p>
 
           <div className="exam-options">
-            {currentQuestion.options.map((opt) => (
-              <label key={opt} className="exam-option">
-                <input
-                  type={
-                    currentQuestion.type === "multiple"
-                      ? "checkbox"
-                      : "radio"
-                  }
-                  name={`q-${current}`}
-                  checked={
-                    currentQuestion.type === "multiple"
-                      ? answers[current]?.includes(opt)
-                      : answers[current] === opt
-                  }
-                  onChange={() => handleAnswerChange(opt)}
-                />
-                {opt}
-              </label>
-            ))}
+            {currentQuestion.type === "MATCHING" ? (
+              <div className="matching-question">
+                <h5>Match the following:</h5>
+                {currentQuestion.leftItems && Array.isArray(currentQuestion.leftItems) && currentQuestion.leftItems.length > 0 ? (
+                  currentQuestion.leftItems.map((leftItem, idx) => (
+                    <div key={idx} className="matching-row">
+                      <span className="left-item">{leftItem}</span>
+                      <select
+                        value={answers[current]?.[leftItem] || ""}
+                        onChange={(e) => handleAnswerChange({ [leftItem]: e.target.value })}
+                      >
+                        <option value="">Select match</option>
+                        {currentQuestion.rightItems && currentQuestion.rightItems.map((rightItem, ridx) => (
+                          <option key={ridx} value={rightItem}>{rightItem}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))
+                ) : (
+                  <p>Matching question data not available</p>
+                )}
+              </div>
+            ) : currentQuestion.options && currentQuestion.options.length > 0 ? (
+              currentQuestion.options.map((opt, optIdx) => (
+                <label key={`${current}-${optIdx}`} className="exam-option">
+                  <input
+                    type={
+                      currentQuestion.type === "MULTIPLE_SELECT" || currentQuestion.type === "multiple"
+                        ? "checkbox"
+                        : "radio"
+                    }
+                    name={`q-${current}`}
+                    checked={
+                      currentQuestion.type === "MULTIPLE_SELECT" || currentQuestion.type === "multiple"
+                        ? answers[current]?.includes(opt)
+                        : answers[current] === opt
+                    }
+                    onChange={() => handleAnswerChange(opt)}
+                  />
+                  <span style={{ marginLeft: '8px' }}>{opt}</span>
+                </label>
+              ))
+            ) : (
+              <p>No options available for this question</p>
+            )}
           </div>
         </section>
 

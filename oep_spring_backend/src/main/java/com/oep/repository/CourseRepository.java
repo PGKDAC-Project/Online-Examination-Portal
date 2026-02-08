@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import com.oep.entities.Courses;
 
 public interface CourseRepository extends JpaRepository<Courses, Long> {
-    @Query("SELECT DISTINCT c FROM Courses c JOIN c.instructors i WHERE i.id = :instructorId")
+    @Query("SELECT DISTINCT c FROM Courses c JOIN FETCH c.instructors i WHERE i.id = :instructorId")
     List<Courses> findByInstructorDetailsId(@Param("instructorId") Long instructorId);
 
     @Query("SELECT DISTINCT c FROM Courses c " +
@@ -17,7 +17,6 @@ public interface CourseRepository extends JpaRepository<Courses, Long> {
     		"LEFT JOIN FETCH c.instructors i " )
     		List<Courses> findCoursesWithOutcomesAndInstructor();
     
-    @Query("SELECT e.course FROM Enrollment e WHERE e.student.id = :studentId")
-    List<Courses> findCoursesByStudentId(
-            @Param("studentId") Long studentId);
+    @Query("SELECT DISTINCT e.course FROM Enrollment e LEFT JOIN FETCH e.course.instructors WHERE e.student.id = :studentId")
+    List<Courses> findCoursesByStudentId(@Param("studentId") Long studentId);
 }

@@ -33,6 +33,10 @@ namespace AdminServiceDotNET.Models
         [Required]
         [Column("end_date")]
         public DateTime EndDate { get; set; }
+
+        [Required]
+        [Column("is_active")]
+        public bool IsActive { get; set; } = true;
     }
 }
 

@@ -43,6 +43,10 @@ export const startExam = async (examId, password) => {
   return await axiosClient.post(`/student/exams/${examId}/submissions`, { password });
 };
 
+export const getExamQuestions = async (examId) => {
+  return await axiosClient.get(`/student/exams/${examId}/questions`);
+};
+
 export const submitExam = async (examId, answers) => {
   const id = getStudentId();
   return await axiosClient.post(`/student/exams/${examId}/submissions`, { answers, studentId: id });

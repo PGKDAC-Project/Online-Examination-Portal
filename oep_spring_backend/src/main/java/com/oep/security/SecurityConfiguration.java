@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.http.HttpStatus;
 
@@ -70,7 +71,7 @@ public class SecurityConfiguration {
 				.anyRequest().authenticated());
 
 		http.addFilterBefore(jwtAuthenticationFilter,
-				org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+				UsernamePasswordAuthenticationFilter.class);
 
 		http.exceptionHandling(ex -> ex
 				.authenticationEntryPoint(authenticationEntryPoint()));

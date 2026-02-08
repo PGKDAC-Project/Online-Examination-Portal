@@ -13,7 +13,7 @@ namespace AdminServiceDotNET.Controllers
     [ApiController]
     [Route("admin/users")]
     [Authorize(Roles = "ROLE_ADMIN")]
-    public class UserController : ControllerBase
+    public class UserController : BaseController
     {
         AdminDbContext dbContext;
         IUserService userService;
@@ -51,7 +51,7 @@ namespace AdminServiceDotNET.Controllers
             await userService.CreateUser(userDto, token);
             await auditLogService.LogAsync(
                 ServiceName.USER_SERVICE,
-                User.FindFirst("sub")?.Value ?? "unknown",
+                GetUserEmail(),
                 UserRole.ROLE_ADMIN,
                 AuditAction.CREATE_USER,
                 $"Created user {userDto.email}");
@@ -65,7 +65,7 @@ namespace AdminServiceDotNET.Controllers
             await userService.UpdateUserAsync(id, userDto, token);
             await auditLogService.LogAsync(
                 ServiceName.USER_SERVICE,
-                User.FindFirst("sub")?.Value ?? "unknown",
+                GetUserEmail(),
                 UserRole.ROLE_ADMIN,
                 AuditAction.UPDATE_USER,
                 $"Updated user {id}");
@@ -79,7 +79,7 @@ namespace AdminServiceDotNET.Controllers
             await userService.DeleteUserAsync(id, token);
             await auditLogService.LogAsync(
                 ServiceName.USER_SERVICE,
-                User.FindFirst("sub")?.Value ?? "unknown",
+                GetUserEmail(),
                 UserRole.ROLE_ADMIN,
                 AuditAction.DELETE_USER,
                 $"Deleted user {id}");

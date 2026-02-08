@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FaPlus, FaBook, FaCheck, FaTimes, FaBan, FaFileCsv, FaFilePdf, FaSearch } from 'react-icons/fa';
-import { getAllCourses, createCourse, updateCourseStatus } from '../../services/admin/courseService';
+import { FaPlus, FaBook, FaCheck, FaTimes, FaBan, FaFileCsv, FaFilePdf, FaSearch, FaEdit } from 'react-icons/fa';
+import { getAllCourses, createCourse, updateCourseStatus, updateCourse } from '../../services/admin/courseService';
 import { getAllInstructors } from '../../services/admin/userService';
 import { exportToCSV, exportToPDF } from '../../utils/exportUtils';
 import { toast } from 'react-toastify';
@@ -17,6 +17,7 @@ const CourseGovernance = () => {
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
   const [formData, setFormData] = useState({
     courseCode: "",
     title: "",
@@ -100,6 +101,7 @@ const CourseGovernance = () => {
   };
 
   const handleCreateOpen = () => {
+    setEditingCourse(null);
     setFormData({
       courseCode: "",
       title: "",
@@ -139,7 +141,6 @@ const CourseGovernance = () => {
     e.preventDefault();
     setError("");
 
-    // Prepare payload matching Entity
     const payload = {
       courseCode: formData.courseCode,
       title: formData.title,
@@ -156,12 +157,17 @@ const CourseGovernance = () => {
     };
 
     try {
-      await createCourse(payload);
+      if (editingCourse) {
+        await updateCourse(editingCourse.id, payload);
+        toast.success("Course updated successfully");
+      } else {
+        await createCourse(payload);
+        toast.success("Course created successfully");
+      }
       setShowModal(false);
       fetchData();
-      toast.success("Course created successfully");
     } catch (err) {
-      setError(err.message || "Failed to create course");
+      setError(err.message || `Failed to ${editingCourse ? 'update' : 'create'} course`);
     }
   };
 
@@ -245,8 +251,8 @@ const CourseGovernance = () => {
                     </td>
                     <td>
                       {course.instructors && course.instructors.length > 0 
-                        ? course.instructors.map(inst => inst.name || inst.userName).join(", ")
-                        : "No instructors assigned"
+                        ? course.instructors.map(inst => inst.name || inst.userName || 'Unknown').join(", ")
+                        : course.instructorDetails?.name || "No instructors assigned"
                       }
                     </td>
                     <td>
@@ -255,23 +261,46 @@ const CourseGovernance = () => {
                       </span>
                     </td>
                     <td>
-                      <span className={`badge ${course.status === 'Active' ? 'bg-success' :
-                        course.status === 'Pending' ? 'bg-warning' : 'bg-danger'
-                        }`}>
+                      <span className={`badge ${
+                        course.status?.toUpperCase() === 'ACTIVE' ? 'bg-success' :
+                        course.status?.toUpperCase() === 'INACTIVE' ? 'bg-warning text-dark' :
+                        course.status?.toUpperCase() === 'SUSPENDED' ? 'bg-danger' :
+                        'bg-secondary'
+                      }`}>
                         {course.status}
                       </span>
                     </td>
                     <td>
                       <div className="btn-group">
-                        {course.status !== 'Active' && (
-                          <button className="btn btn-sm btn-outline-success" title="Approve/Activate" onClick={() => handleStatusChange(course.id, 'Active')}>
+                        <button className="btn btn-sm btn-outline-primary" title="Edit" onClick={() => {
+                          setEditingCourse(course);
+                          setFormData({
+                            courseCode: course.courseCode || "",
+                            title: course.title || "",
+                            description: course.description || "",
+                            instructorIds: course.instructors ? course.instructors.map(i => String(i.id)) : [],
+                            status: course.status || "Active",
+                            syllabus: course.syllabus && course.syllabus.length > 0 ? course.syllabus : [{ moduleNo: 1, moduleTitle: "", moduleDescription: "", estimatedHrs: 0 }]
+                          });
+                          setError("");
+                          setShowModal(true);
+                        }}>
+                          <FaEdit />
+                        </button>
+                        {course.status?.toUpperCase() !== 'ACTIVE' && (
+                          <button className="btn btn-sm btn-outline-success" title="Activate" onClick={() => handleStatusChange(course.id, 'Active')}>
                             <FaCheck />
                           </button>
                         )}
-                        {course.status === 'Active' && (
-                          <button className="btn btn-sm btn-outline-warning" title="Suspend" onClick={() => handleStatusChange(course.id, 'Suspended')}>
-                            <FaBan />
-                          </button>
+                        {course.status?.toUpperCase() === 'ACTIVE' && (
+                          <>
+                            <button className="btn btn-sm btn-outline-warning" title="Set Inactive" onClick={() => handleStatusChange(course.id, 'Inactive')}>
+                              <FaTimes />
+                            </button>
+                            <button className="btn btn-sm btn-outline-danger" title="Suspend" onClick={() => handleStatusChange(course.id, 'Suspended')}>
+                              <FaBan />
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -289,7 +318,7 @@ const CourseGovernance = () => {
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content card-custom border-0">
               <div className="modal-header border-bottom-0">
-                <h5 className="modal-title fw-bold">Create New Course</h5>
+                <h5 className="modal-title fw-bold">{editingCourse ? 'Edit Course' : 'Create New Course'}</h5>
                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
               </div>
               <div className="modal-body">
@@ -443,7 +472,7 @@ const CourseGovernance = () => {
 
                   <div className="d-flex justify-content-end gap-2">
                     <button type="button" className="btn btn-light" onClick={() => setShowModal(false)}>Cancel</button>
-                    <button type="submit" className="btn btn-primary-custom">Create Course</button>
+                    <button type="submit" className="btn btn-primary-custom">{editingCourse ? 'Update Course' : 'Create Course'}</button>
                   </div>
                 </form>
               </div>

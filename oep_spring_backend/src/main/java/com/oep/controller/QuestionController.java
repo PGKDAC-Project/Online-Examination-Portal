@@ -4,7 +4,10 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.oep.entities.Question;
+import com.oep.entities.Courses;
 import com.oep.service.QuestionService;
+import com.oep.repository.CourseRepository;
+import com.oep.custom_exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -12,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class QuestionController {
     private final QuestionService questionService;
+    private final CourseRepository courseRepository;
 
     @GetMapping
     public ResponseEntity<List<Question>> getAllQuestions() {
@@ -29,7 +33,33 @@ public class QuestionController {
     }
 
     @PostMapping
-    public ResponseEntity<Question> createQuestion(@RequestBody Question question) {
+    public ResponseEntity<Question> createQuestion(@RequestBody java.util.Map<String, Object> payload) {
+        Question question = new Question();
+        question.setQuestionText((String) payload.get("questionText"));
+        String type = (String) payload.get("type");
+        question.setType(com.oep.entities.QuestionType.valueOf(type));
+        question.setLevel(com.oep.entities.Level.valueOf((String) payload.get("level")));
+        question.setMarksAllotted(((Number) payload.get("marksAllotted")).intValue());
+        
+        Long courseId = ((Number) payload.get("courseId")).longValue();
+        Courses course = courseRepository.findById(courseId)
+            .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + courseId));
+        question.setCourse(course);
+        
+        if (payload.containsKey("options")) {
+            question.setOptions((List<String>) payload.get("options"));
+        }
+        if (payload.containsKey("correctAnswer")) {
+            question.getCorrectAnswers().add((String) payload.get("correctAnswer"));
+        }
+        if (payload.containsKey("correctAnswers")) {
+            question.getCorrectAnswers().addAll((List<String>) payload.get("correctAnswers"));
+        }
+        if ("MATCHING".equals(type) && payload.containsKey("matchingPairs")) {
+            question.setMatchingPairs((java.util.Map<String, String>) payload.get("matchingPairs"));
+        }
+        
+        question.setQuestionCode("Q" + System.currentTimeMillis());
         return ResponseEntity.ok(questionService.createQuestion(question));
     }
 

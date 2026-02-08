@@ -22,6 +22,7 @@ public class ExamServiceImpl implements ExamService {
     private final com.oep.repository.ResultRepository resultRepository;
     private final com.oep.repository.UserRepository userRepository;
     private final com.oep.repository.StudentAnswerRepository studentAnswerRepository;
+    private final com.oep.repository.CourseRepository courseRepository;
 
     @Override
     public List<Exam> getAllExams() {
@@ -56,15 +57,17 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public Exam updateExam(Long id, Exam examDetails) {
         Exam exam = getExamById(id);
-        exam.setExamTitle(examDetails.getExamTitle());
-        exam.setScheduledDate(examDetails.getScheduledDate());
-        exam.setStartTime(examDetails.getStartTime());
-        exam.setEndTime(examDetails.getEndTime());
-        exam.setDuration(examDetails.getDuration());
-        exam.setTotalMarks(examDetails.getTotalMarks());
-        exam.setPassingMarks(examDetails.getPassingMarks());
-        exam.setStatus(examDetails.getStatus());
-        exam.setExamPassword(examDetails.getExamPassword());
+        if (examDetails.getExamTitle() != null) exam.setExamTitle(examDetails.getExamTitle());
+        if (examDetails.getScheduledDate() != null) exam.setScheduledDate(examDetails.getScheduledDate());
+        if (examDetails.getStartTime() != null) exam.setStartTime(examDetails.getStartTime());
+        if (examDetails.getEndTime() != null) exam.setEndTime(examDetails.getEndTime());
+        if (examDetails.getDuration() != null) exam.setDuration(examDetails.getDuration());
+        if (examDetails.getPassingMarks() != null) exam.setPassingMarks(examDetails.getPassingMarks());
+        if (examDetails.getStatus() != null) exam.setStatus(examDetails.getStatus());
+        if (examDetails.getExamPassword() != null) exam.setExamPassword(examDetails.getExamPassword());
+        if (examDetails.getResultPublished() != null) exam.setResultPublished(examDetails.getResultPublished());
+        if (examDetails.getAnswerReviewAllowed() != null) exam.setAnswerReviewAllowed(examDetails.getAnswerReviewAllowed());
+        if (examDetails.getScorecardReleased() != null) exam.setScorecardReleased(examDetails.getScorecardReleased());
         return examRepository.save(exam);
     }
 
@@ -91,6 +94,9 @@ public class ExamServiceImpl implements ExamService {
         eq.setSequenceOrder(0); // Default order
         
         examQuestionsRepository.save(eq);
+        
+        // Recalculate total marks and questions
+        updateExamTotals(examId);
     }
 
     @Override
@@ -103,6 +109,9 @@ public class ExamServiceImpl implements ExamService {
                  .orElseThrow(() -> new ResourceNotFoundException("Question not associated with exam"));
         
         examQuestionsRepository.delete(eq);
+        
+        // Recalculate total marks and questions
+        updateExamTotals(examId);
     }
 
     @Override
@@ -127,10 +136,22 @@ public class ExamServiceImpl implements ExamService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
 
+        // Check if result already exists
+        ExamResults existingResult = resultRepository.findByExamIdAndStudentId(examId, studentId).orElse(null);
+        if (existingResult != null) {
+            throw new InvalidInputException("You have already submitted this exam");
+        }
+        
+        // Calculate total marks from questions
+        List<ExamQuestions> examQuestions = examQuestionsRepository.findByExamQuestionIdExamIdOrderBySequenceOrderAsc(examId);
+        int calculatedTotalMarks = examQuestions.stream()
+                .mapToInt(eq -> eq.getQuestion().getMarksAllotted())
+                .sum();
+
         ExamResults result = new ExamResults();
         result.setExam(exam);
         result.setStudent(student);
-        result.setTotalMarks(exam.getTotalMarks());
+        result.setTotalMarks(calculatedTotalMarks);
         result.setTotalScore(0);
         result.setStatus(ResultStatus.SUBMITTED);
         result.setIsEvaluated(false); 
@@ -148,18 +169,42 @@ public class ExamServiceImpl implements ExamService {
                 StudentAnswer answer = new StudentAnswer();
                 answer.setExamResult(savedResult);
                 answer.setQuestion(question);
-                answer.setSelectedOptionJson(selectedOption); 
                 
-                // Simple auto-grading logic - handle correctAnswers as Set
+                // Convert to proper JSON string if needed
+                String jsonAnswer = selectedOption;
+                if (selectedOption != null && !selectedOption.trim().startsWith("[") && !selectedOption.trim().startsWith("{")) {
+                    // Simple string, wrap in quotes for JSON
+                    jsonAnswer = "\"" + selectedOption.replace("\"", "\\\"") + "\"";
+                }
+                answer.setSelectedOptionJson(jsonAnswer); 
+                
+                // Simple auto-grading logic
                 boolean isCorrect = false;
                 if (question.getCorrectAnswers() != null && !question.getCorrectAnswers().isEmpty()) {
-                    // Check if selected option is in the set of correct answers (case-insensitive)
-                    String normalizedSelected = selectedOption.trim().toLowerCase();
-                    for (String correct : question.getCorrectAnswers()) {
-                        if (correct.trim().toLowerCase().equals(normalizedSelected)) {
-                            isCorrect = true;
-                            break;
+                    try {
+                        // Parse JSON answer
+                        if (selectedOption.trim().startsWith("[")) {
+                            // Array answer (MULTIPLE_SELECT)
+                            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                            java.util.List<String> selectedList = mapper.readValue(selectedOption, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>(){});
+                            // Check if all selected are correct and all correct are selected
+                            isCorrect = selectedList.size() == question.getCorrectAnswers().size() &&
+                                       selectedList.stream().allMatch(s -> question.getCorrectAnswers().stream()
+                                           .anyMatch(c -> c.trim().equalsIgnoreCase(s.trim())));
+                        } else if (selectedOption.trim().startsWith("{")) {
+                            // Object answer (MATCHING) - skip for now
+                            isCorrect = false;
+                        } else {
+                            // Single answer (MCQ, TRUE_FALSE)
+                            String cleanAnswer = selectedOption.replace("\"", "").trim();
+                            isCorrect = question.getCorrectAnswers().stream()
+                                .anyMatch(c -> c.trim().equalsIgnoreCase(cleanAnswer));
                         }
+                    } catch (Exception e) {
+                        // Fallback to simple comparison
+                        String normalizedSelected = selectedOption.replace("\"", "").trim().toLowerCase();
+                        isCorrect = question.getCorrectAnswers().stream()
+                            .anyMatch(c -> c.trim().toLowerCase().equals(normalizedSelected));
                     }
                 }
                 
@@ -182,5 +227,35 @@ public class ExamServiceImpl implements ExamService {
         }
 
         return resultRepository.save(savedResult);
+    }
+    
+    @Override
+    public Courses getCourseById(Long courseId) {
+        return courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + courseId));
+    }
+    
+    @Override
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+    }
+    
+    private void updateExamTotals(Long examId) {
+        Exam exam = getExamById(examId);
+        List<ExamQuestions> questions = examQuestionsRepository.findByExamQuestionIdExamIdOrderBySequenceOrderAsc(examId);
+        
+        int totalMarks = questions.stream()
+                .mapToInt(eq -> eq.getQuestion().getMarksAllotted())
+                .sum();
+        
+        exam.setTotalMarks(totalMarks);
+        exam.setTotalQuestions(questions.size());
+        examRepository.save(exam);
+    }
+    
+    @Override
+    public List<ExamResults> getResultsByExam(Long examId) {
+        return resultRepository.findByExamId(examId);
     }
 }

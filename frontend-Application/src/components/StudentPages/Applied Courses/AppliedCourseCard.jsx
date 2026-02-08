@@ -7,21 +7,19 @@ const AppliedCourseCard = ({ course }) => {
 
   return (
     <div className="course-card">
-      {/* Header */}
       <div className="course-header">
         <div>
-          <h5>{course.courseName}</h5>
+          <h5>{course.title || course.courseName}</h5>
           <p className="text-muted">
-            {course.courseCode} · Instructor: {course.instructor}
+            {course.courseCode} · Instructor: {course.instructors && course.instructors.length > 0 ? course.instructors.map(i => i.name).join(', ') : course.instructor || 'N/A'}
           </p>
         </div>
 
-        <span className={`status ${course.status.toLowerCase()}`}>
-          {course.status}
+        <span className={`status ${(course.status || 'active').toLowerCase()}`}>
+          {course.status || 'Active'}
         </span>
       </div>
 
-      {/* Syllabus Toggle */}
       <button
         className="syllabus-btn"
         onClick={() => setOpen(!open)}
@@ -29,19 +27,25 @@ const AppliedCourseCard = ({ course }) => {
         Syllabus {open ? <FaChevronUp /> : <FaChevronDown />}
       </button>
 
-      {/* Syllabus Dropdown */}
       {open && (
         <div className="syllabus-content">
-          {course.syllabus.map((module, index) => (
-            <div key={index} className="module">
-              <strong>Module {index + 1}: {module.moduleName}</strong>
-              <ul>
-                {module.topics.map((topic, i) => (
-                  <li key={i}>{topic}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {course.syllabus && course.syllabus.length > 0 ? (
+            course.syllabus.map((module, index) => (
+              <div key={index} className="module">
+                <strong>Module {module.moduleNo || index + 1}: {module.moduleTitle || module.moduleName}</strong>
+                {module.moduleDescription && <p>{module.moduleDescription}</p>}
+                {module.topics && (
+                  <ul>
+                    {module.topics.map((topic, i) => (
+                      <li key={i}>{topic}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-muted">No syllabus available</p>
+          )}
         </div>
       )}
     </div>

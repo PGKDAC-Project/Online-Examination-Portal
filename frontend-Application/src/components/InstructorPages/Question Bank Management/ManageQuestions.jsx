@@ -35,38 +35,48 @@ const ManageQuestions = () => {
     }, [allQuestions, typeFilter]);
 
     const startEdit = (q) => {
+        console.log('Editing question:', q);
         setEditingId(q.id);
+        const type = q.type?.toLowerCase() || "single";
+        console.log('Type:', type, 'correctAnswers:', q.correctAnswers);
         const correctAnswer = (() => {
-            if (q.type === "multiple") {
-                if (Array.isArray(q.correctAnswer)) return q.correctAnswer;
+            if (type === "multiple") {
+                if (Array.isArray(q.correctAnswers)) {
+                    return q.correctAnswers.map(ans => q.options.indexOf(ans)).filter(idx => idx >= 0);
+                }
                 return [];
             }
-            if (q.type === "single") {
-                if (Number.isInteger(q.correctAnswer)) return q.correctAnswer;
-                if (typeof q.correctAnswer === "string" && q.options) {
-                    const idx = q.options.indexOf(q.correctAnswer);
+            if (type === "single") {
+                if (Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0) {
+                    const idx = q.options.indexOf(q.correctAnswers[0]);
                     return idx >= 0 ? idx : "";
                 }
                 return "";
             }
-            return q.correctAnswer ?? "";
+            if (type === "true_false") {
+                return Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0 ? q.correctAnswers[0] : "";
+            }
+            return "";
         })();
+        console.log('Computed correctAnswer:', correctAnswer);
+
+        const pairs = q.matchingPairs ? Object.entries(q.matchingPairs).map(([left, right]) => ({ left, right })) : [
+            { left: "", right: "" },
+            { left: "", right: "" },
+            { left: "", right: "" },
+            { left: "", right: "" },
+        ];
 
         setDraft({
             id: q.id,
             courseCode: q.courseCode,
-            type: q.type || "single",
-            text: q.text || "",
-            options: Array.isArray(q.options) ? q.options : ["", "", "", ""],
+            type: type === "true_false" ? "truefalse" : type,
+            text: q.questionText || "",
+            options: type === "true_false" ? ["True", "False"] : (Array.isArray(q.options) ? q.options : ["", "", "", ""]),
             correctAnswer,
-            pairs: Array.isArray(q.pairs) ? q.pairs : [
-                { left: "", right: "" },
-                { left: "", right: "" },
-                { left: "", right: "" },
-                { left: "", right: "" },
-            ],
-            difficulty: q.difficulty || "Medium",
-            marks: q.marks || 1,
+            pairs,
+            difficulty: q.level || "Medium",
+            marks: q.marksAllotted || 1,
         });
     };
 
@@ -131,17 +141,38 @@ const ManageQuestions = () => {
             return;
         }
 
-        const nextQuestionData = {
-            ...draft,
-            text,
-            marks,
+        const type = draft.type === "truefalse" ? "TRUE_FALSE" : draft.type.toUpperCase();
+        const level = draft.difficulty === "Hard" ? "DIFFICULT" : draft.difficulty.toUpperCase();
+
+        const payload = {
+            questionText: text,
+            type,
+            level,
+            marksAllotted: marks,
             options: draft.type === "matching" ? [] : (draft.options || []).map((o) => (o || "").trim()),
-            pairs: draft.type === "matching" ? (draft.pairs || []).map((p) => ({ left: String(p?.left || "").trim(), right: String(p?.right || "").trim() })) : undefined,
         };
 
+        if (draft.type === "matching") {
+            const matchingPairs = {};
+            (draft.pairs || []).forEach(p => {
+                const left = String(p?.left || "").trim();
+                const right = String(p?.right || "").trim();
+                if (left && right) matchingPairs[left] = right;
+            });
+            payload.matchingPairs = matchingPairs;
+        } else if (draft.type === "single" || draft.type === "truefalse") {
+            const correctAnswer = draft.type === "single" 
+                ? draft.options[draft.correctAnswer] 
+                : draft.correctAnswer;
+            payload.correctAnswers = [correctAnswer];
+        } else if (draft.type === "multiple") {
+            payload.correctAnswers = (draft.correctAnswer || []).map(idx => draft.options[idx]);
+        }
+
         try {
-            await updateQuestionService(draft.id, nextQuestionData);
-            setAllQuestions((prev) => prev.map((q) => q.id === draft.id ? nextQuestionData : q));
+            await updateQuestionService(draft.id, payload);
+            const updatedQuestion = { ...draft, questionText: text, level: draft.difficulty, marksAllotted: marks, type: draft.type };
+            setAllQuestions((prev) => prev.map((q) => q.id === draft.id ? updatedQuestion : q));
             toast.success("Question updated successfully.");
             cancelEdit();
         } catch (err) {
@@ -334,50 +365,36 @@ const ManageQuestions = () => {
                 </div>
             )}
 
-            <div className="card shadow-sm">
-                <div className="card-header bg-dark text-white">
-                    <h4 className="mb-0">Manage Questions - {courseCode}</h4>
-                </div>
-                <div className="card-body">
-                    <table className="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Question</th>
-                                <th>Type</th>
-                                <th>Difficulty</th>
-                                <th>Marks</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {courseQuestions.map(q => (
-                                <tr key={q.id}>
-                                    <td>{q.id}</td>
-                                    <td>{q.text}</td>
-                                    <td className="text-capitalize">{q.type}</td>
-                                    <td><span className="badge bg-info">{q.difficulty}</span></td>
-                                    <td>{q.marks || 1}</td>
-                                    <td>
+            <div className="row g-3">
+                {courseQuestions.map(q => (
+                    <div key={q.id} className="col-md-6">
+                        <div className="card shadow-sm h-100">
+                            <div className="card-body">
+                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                    <span className="badge bg-info">{q.type}</span>
+                                    <div>
                                         <button className="btn btn-sm btn-primary me-2" onClick={() => startEdit(q)} disabled={editingId === q.id}>
                                             <FaEdit />
                                         </button>
                                         <button className="btn btn-sm btn-danger" onClick={() => deleteQuestion(q.id)}>
                                             <FaTrash />
                                         </button>
-                                    </td>
-                                </tr>
-                            ))}
-                            {courseQuestions.length === 0 && (
-                                <tr>
-                                    <td colSpan={6} className="text-center text-muted py-4">
-                                        No questions found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+                                </div>
+                                <h6 className="card-title">{q.questionText || q.text}</h6>
+                                <div className="d-flex justify-content-between align-items-center mt-3">
+                                    <span className="badge bg-secondary">{q.level || q.difficulty}</span>
+                                    <span className="text-muted">Marks: {q.marksAllotted || q.marks || 1}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                {courseQuestions.length === 0 && (
+                    <div className="col-12">
+                        <div className="alert alert-info text-center">No questions found.</div>
+                    </div>
+                )}
             </div>
         </div>
     );

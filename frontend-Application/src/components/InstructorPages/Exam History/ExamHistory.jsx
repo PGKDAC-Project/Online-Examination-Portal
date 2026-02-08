@@ -1,40 +1,71 @@
-// src/components/InstructorPages/ExamHistory.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     FaHistory,
     FaUsers,
     FaChartBar,
-    FaFileDownload,
     FaFileCsv,
     FaFilePdf
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { exportToCSV, exportToPDF } from '../../../utils/exportUtils';
+import { getInstructorExams } from '../../../services/instructor/instructorService';
+import { getCurrentUser } from '../../../services/auth/authService';
+import axiosClient from '../../../services/axios/axiosClient';
 
 function InstructorExamHistory() {
+    const [exams, setExams] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Aggregated past exam data (instructor-only)
-    // Ideally this would come from an API, but for now we follow the pattern
-    const exams = [
-        {
-            id: 1,
-            title: "DBMS Midterm",
-            course: "CS210",
-            date: "2025-10-15",
-            attempted: 118,
-            passed: 86,
-            avgScore: 67
-        },
-        {
-            id: 2,
-            title: "DSA Quiz 2",
-            course: "CS204",
-            date: "2025-09-28",
-            attempted: 122,
-            passed: 91,
-            avgScore: 71
+    useEffect(() => {
+        loadExamHistory();
+    }, []);
+
+    const loadExamHistory = async () => {
+        try {
+            const user = getCurrentUser();
+            if (user && user.id) {
+                const data = await getInstructorExams(user.id);
+                const completed = data.filter(exam => exam.status === 'COMPLETED');
+                const historyData = await Promise.all(
+                    completed.map(async (exam) => {
+                        try {
+                            const results = await axiosClient.get(`/instructor/exams/${exam.id}/results`);
+                            const attempted = results.length;
+                            const passed = results.filter(r => r.totalScore >= exam.passingMarks).length;
+                            const avgScore = attempted > 0 
+                                ? Math.round(results.reduce((sum, r) => sum + r.totalScore, 0) / attempted)
+                                : 0;
+                            return {
+                                id: exam.id,
+                                title: exam.examTitle,
+                                course: exam.course?.courseCode || 'N/A',
+                                date: exam.scheduledDate,
+                                attempted,
+                                passed,
+                                avgScore
+                            };
+                        } catch (error) {
+                            return {
+                                id: exam.id,
+                                title: exam.examTitle,
+                                course: exam.course?.courseCode || 'N/A',
+                                date: exam.scheduledDate,
+                                attempted: 0,
+                                passed: 0,
+                                avgScore: 0
+                            };
+                        }
+                    })
+                );
+                setExams(historyData);
+            }
+        } catch (error) {
+            console.error('Failed to load exam history:', error);
+            toast.error('Failed to load exam history');
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
 
     const handleDownload = (format, title) => {
         const data = exams.map(e => ({
@@ -55,6 +86,8 @@ function InstructorExamHistory() {
             toast.success(`Exported ${title} as PDF`);
         }
     };
+
+    if (loading) return <div className="p-5 text-center">Loading...</div>;
 
     return (
         <div className="container-fluid p-4">
@@ -96,22 +129,13 @@ function InstructorExamHistory() {
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="btn-group btn-group-sm">
-                                            <button
-                                                className="btn btn-outline-danger d-flex align-items-center gap-1"
-                                                onClick={() => handleDownload('PDF', exam.title)}
-                                                title="Export PDF"
-                                            >
-                                                <FaFilePdf /> PDF
-                                            </button>
-                                            <button
-                                                className="btn btn-outline-success d-flex align-items-center gap-1"
-                                                onClick={() => handleDownload('CSV', exam.title)}
-                                                title="Export CSV"
-                                            >
-                                                <FaFileCsv /> CSV
-                                            </button>
-                                        </div>
+                                        <button
+                                            className="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
+                                            onClick={() => handleDownload('CSV', exam.title)}
+                                            title="Export CSV"
+                                        >
+                                            <FaFileCsv /> CSV
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

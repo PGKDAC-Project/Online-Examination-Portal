@@ -1,5 +1,4 @@
-// src/components/InstructorPages/ResultEvaluation.jsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     FaCheckCircle,
     FaTimesCircle,
@@ -7,120 +6,74 @@ import {
     FaToggleOff
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-
-const STORAGE_KEY = "instructorResultEvaluationV1";
-
-const loadResultData = () => {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === "object" ? parsed : null;
-    } catch {
-        return null;
-    }
-};
-
-const saveResultData = (data) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-};
+import { getInstructorExams } from '../../../services/instructor/instructorService';
+import { getCurrentUser } from '../../../services/auth/authService';
+import axiosClient from '../../../services/axios/axiosClient';
 
 function ResultEvaluation() {
-    const [state, setState] = useState(() => {
-        const stored = loadResultData();
-        if (stored?.exams?.length) {
-            return {
-                exams: stored.exams,
-                selectedExamId: stored.selectedExamId || stored.exams[0].id,
-            };
-        }
-
-        const seed = {
-            selectedExamId: "EXAM-DBMS-2025-10-15",
-            exams: [
-                {
-                    id: "EXAM-DBMS-2025-10-15",
-                    title: "DBMS Midterm",
-                    totalStudents: 120,
-                    evaluated: 120,
-                    passMark: 40,
-                    resultPublished: false,
-                    answerReviewAllowed: false,
-                    scorecardReleased: false,
-                    students: [
-                        { id: "S101", name: "Ankit Singh", score: 72, status: "Pass" },
-                        { id: "S102", name: "Riya Sharma", score: 34, status: "Fail" }
-                    ]
-                },
-                {
-                    id: "EXAM-DSA-2025-09-28",
-                    title: "DSA Quiz 2",
-                    totalStudents: 122,
-                    evaluated: 122,
-                    passMark: 35,
-                    resultPublished: true,
-                    answerReviewAllowed: true,
-                    scorecardReleased: true,
-                    students: [
-                        { id: "S201", name: "Vikram Rao", score: 61, status: "Pass" },
-                        { id: "S202", name: "Neha Patel", score: 28, status: "Fail" }
-                    ]
-                }
-            ]
-        };
-
-        saveResultData(seed);
-        return { exams: seed.exams, selectedExamId: seed.selectedExamId };
-    });
-
-    const exams = state.exams;
-    const selectedExamId = state.selectedExamId;
-
-    const setExams = (updater) => {
-        setState((prev) => {
-            const nextExams = typeof updater === "function" ? updater(prev.exams) : updater;
-            return { ...prev, exams: nextExams };
-        });
-    };
-
-    const setSelectedExamId = (value) => {
-        setState((prev) => ({ ...prev, selectedExamId: value }));
-    };
+    const [exams, setExams] = useState([]);
+    const [selectedExamId, setSelectedExamId] = useState(null);
+    const [selectedExam, setSelectedExam] = useState(null);
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!exams.length || !selectedExamId) return;
-        saveResultData({ selectedExamId, exams });
-    }, [exams, selectedExamId]);
+        loadExams();
+    }, []);
 
-    const selectedExam = useMemo(() => exams.find((e) => e.id === selectedExamId) || null, [exams, selectedExamId]);
+    useEffect(() => {
+        if (selectedExamId) {
+            loadExamResults(selectedExamId);
+        }
+    }, [selectedExamId]);
 
-    const updateSelectedExam = (patch) => {
-        setExams((prev) =>
-            prev.map((e) => (e.id === selectedExamId ? { ...e, ...patch } : e))
-        );
+    const loadExams = async () => {
+        try {
+            const user = getCurrentUser();
+            if (user && user.id) {
+                const data = await getInstructorExams(user.id);
+                const completed = data.filter(exam => exam.status === 'COMPLETED');
+                setExams(completed);
+                if (completed.length > 0) {
+                    setSelectedExamId(completed[0].id);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load exams:', error);
+            toast.error('Failed to load exams');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const toggleControl = (key) => {
+    const loadExamResults = async (examId) => {
+        try {
+            const exam = exams.find(e => e.id === examId);
+            setSelectedExam(exam);
+            const response = await axiosClient.get(`/instructor/exams/${examId}/results`);
+            setResults(response || []);
+        } catch (error) {
+            console.error('Failed to load results:', error);
+            setResults([]);
+        }
+    };
+
+    const toggleControl = async (key) => {
         if (!selectedExam) return;
-        updateSelectedExam({ [key]: !selectedExam[key] });
-        toast.success("Updated result settings.");
+        try {
+            const newValue = !selectedExam[key];
+            await axiosClient.patch(`/instructor/exams/${selectedExamId}/settings`, {
+                [key]: newValue
+            });
+            setSelectedExam({ ...selectedExam, [key]: newValue });
+            toast.success('Updated result settings');
+        } catch (error) {
+            console.error('Failed to update settings:', error);
+            toast.error('Failed to update settings');
+        }
     };
 
-    // const updateStudent = (id, changes) => {
-    //     if (!selectedExam) return;
-    //     const updated = (selectedExam.students || []).map(s => s.id === id ? { ...s, ...changes } : s);
-        
-    //     // Save to storage (simulate)
-    //     // In real app, this would be an API call
-    //     const allExams = loadExams();
-    //     const examIndex = allExams.findIndex(e => e.id === selectedExam.id);
-    //     if (examIndex !== -1) {
-    //         allExams[examIndex].students = updated;
-    //         localStorage.setItem(STORAGE_KEY, JSON.stringify(allExams));
-    //         setSelectedExam(allExams[examIndex]);
-    //     }
-    // };
-
+    if (loading) return <div className="p-5 text-center">Loading...</div>;
     return (
         <div>
             <h2 className="mb-4">Result Evaluation & Publishing</h2>
@@ -132,18 +85,19 @@ function ResultEvaluation() {
                         <select
                             className="form-select"
                             style={{ width: 320 }}
-                            value={selectedExamId}
-                            onChange={(e) => setSelectedExamId(e.target.value)}
+                            value={selectedExamId || ''}
+                            onChange={(e) => setSelectedExamId(Number(e.target.value))}
                         >
+                            {exams.length === 0 && <option value="">No completed exams</option>}
                             {exams.map((e) => (
                                 <option key={e.id} value={e.id}>
-                                    {e.title}
+                                    {e.examTitle}
                                 </option>
                             ))}
                         </select>
                     </div>
                     <div className="text-muted">
-                        {selectedExam ? selectedExam.id : ""}
+                        {selectedExam ? `${selectedExam.scheduledDate}` : ""}
                     </div>
                 </div>
             </div>
@@ -159,7 +113,7 @@ function ResultEvaluation() {
                             <label className="form-label">Exam</label>
                             <input
                                 className="form-control"
-                                value={selectedExam?.title || ""}
+                                value={selectedExam?.examTitle || ""}
                                 disabled={true}
                                 readOnly
                             />
@@ -169,7 +123,7 @@ function ResultEvaluation() {
                             <input
                                 type="number"
                                 className="form-control"
-                                value={selectedExam?.totalStudents ?? ""}
+                                value={results.length || 0}
                                 disabled={true}
                                 readOnly
                             />
@@ -179,7 +133,7 @@ function ResultEvaluation() {
                             <input
                                 type="number"
                                 className="form-control"
-                                value={selectedExam?.evaluated ?? ""}
+                                value={results.filter(r => r.isEvaluated).length || 0}
                                 disabled={true}
                                 readOnly
                             />
@@ -189,7 +143,7 @@ function ResultEvaluation() {
                             <input
                                 type="number"
                                 className="form-control"
-                                value={selectedExam?.passMark ?? ""}
+                                value={selectedExam?.passingMarks || 0}
                                 disabled={true}
                                 title="Pass mark is set during exam creation"
                             />
@@ -270,17 +224,17 @@ function ResultEvaluation() {
                         </thead>
 
                         <tbody>
-                            {(selectedExam?.students || []).map(student => {
-                                const isPass = student.score >= (selectedExam?.passMark || 0);
+                            {results.map(result => {
+                                const isPass = result.totalScore >= (selectedExam?.passingMarks || 0);
                                 return (
-                                <tr key={student.id}>
-                                    <td>{student.id}</td>
-                                    <td>{student.name}</td>
+                                <tr key={result.id}>
+                                    <td>{result.student?.userCode || 'N/A'}</td>
+                                    <td>{result.student?.userName || 'N/A'}</td>
                                     <td style={{ width: 160 }}>
                                         <input
                                             type="number"
                                             className="form-control form-control-sm"
-                                            value={student.score ?? ""}
+                                            value={result.totalScore || 0}
                                             disabled={true}
                                         />
                                     </td>
@@ -298,7 +252,7 @@ function ResultEvaluation() {
                                 </tr>
                                 );
                             })}
-                            {(selectedExam?.students || []).length === 0 && (
+                            {results.length === 0 && (
                                 <tr>
                                     <td colSpan={4} className="text-center text-muted py-4">
                                         No student records found.

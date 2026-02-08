@@ -2,6 +2,7 @@ package com.oep.entities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,6 +19,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderBy;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -49,6 +51,28 @@ public class Courses extends BaseEntity {
 	)
 	@JsonIgnore
 	private List<User> instructors = new ArrayList<>();
+
+	@Transient
+	@JsonProperty("instructors")
+	public List<InstructorInfo> getInstructorInfo() {
+		return instructors.stream()
+			.map(user -> new InstructorInfo(user.getId(), user.getUserName(), user.getEmail()))
+			.collect(Collectors.toList());
+	}
+
+	@Getter
+	@Setter
+	public static class InstructorInfo {
+		private Long id;
+		private String name;
+		private String email;
+
+		public InstructorInfo(Long id, String name, String email) {
+			this.id = id;
+			this.name = name;
+			this.email = email;
+		}
+	}
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "course_outcomes", joinColumns = @JoinColumn(name = "course_id"))

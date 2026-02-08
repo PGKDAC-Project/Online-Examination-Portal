@@ -64,6 +64,7 @@ public class AuditLogAspect {
         if (className.contains("Question")) return ServiceName.QUESTION_SERVICE;
         if (className.contains("Result")) return ServiceName.RESULT_SERVICE;
         return ServiceName.ADMIN_SERVICE;
+        
     }
 
     private AuditAction mapToAction(String methodName) {
@@ -72,4 +73,5 @@ public class AuditLogAspect {
         if (methodName.startsWith("delete")) return AuditAction.USER_DELETED;
         return AuditAction.LOG_VIEWED;
     }
+    
 }

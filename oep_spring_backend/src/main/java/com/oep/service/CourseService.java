@@ -25,4 +25,6 @@ public interface CourseService {
 	void updateCourseStatus(Long id, String status);
 
 	void deleteCourse(Long id);
+	
+	void updateCourseSyllabus(Long courseId, List<?> syllabusData);
 }

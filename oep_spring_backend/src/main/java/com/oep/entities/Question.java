@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -54,13 +55,15 @@ public class Question extends BaseEntity{
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "course_id", nullable = false)
+	@JsonIgnore
 	private Courses course;
 	
 	@OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+	@JsonIgnore
 	private Set<ExamQuestions> examQuestions = new HashSet<>();
 	
 	//Options column
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "question_options",
         joinColumns = @JoinColumn(name = "question_id")
@@ -70,7 +73,7 @@ public class Question extends BaseEntity{
 	
 	//Answers column
 	//MCQ, TRUE_FALSE, MSQ
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "question_correct_answers",
         joinColumns = @JoinColumn(name = "question_id")
@@ -79,13 +82,14 @@ public class Question extends BaseEntity{
     private Set<String> correctAnswers = new HashSet<>();
 	
 	//Matching
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "question_matching_pairs",
         joinColumns = @JoinColumn(name = "question_id")
     )
     @MapKeyColumn(name = "left_item")
     @Column(name = "right_item")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Map<String, String> matchingPairs = new HashMap<>();	
 	
 }

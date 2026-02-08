@@ -81,7 +81,7 @@ const ExamManagement = () => {
                                     <td>{exam.startTime} - {exam.endTime}</td>
                                     <td>
                                         <span className={`badge ${exam.status === 'SCHEDULED' ? 'bg-warning' :
-                                                exam.status === 'LIVE' ? 'bg-success' :
+                                                exam.status === 'ONGOING' ? 'bg-success' :
                                                     exam.status === 'COMPLETED' ? 'bg-secondary' : 'bg-primary'
                                             }`}>
                                             {exam.status}
@@ -110,7 +110,7 @@ const ExamManagement = () => {
                                             >
                                                 <FaTrash />
                                             </button>
-                                            {exam.status === 'LIVE' && (
+                                            {exam.status === 'ONGOING' && (
                                                 <Link
                                                     to={`/instructor/exams/${exam.id}/monitor`}
                                                     className="btn btn-sm btn-outline-success"

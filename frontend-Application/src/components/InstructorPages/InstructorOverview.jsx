@@ -1,21 +1,50 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
+import { getInstructorCourses, getInstructorExams } from "../../services/instructor/instructorService";
+import { getCurrentUser } from "../../services/auth/authService";
 import "./InstructorOverview.css";
 
 const InstructorOverview = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = React.useState({
+    courses: 0,
+    totalExams: 0,
+    liveExams: 0,
+    totalQuestions: 0
+  });
 
-  // Mock dashboard stats (later replace with API)
-  const stats = {
-    courses: 4,
-    totalExams: 12,
-    upcomingExams: 2,
-    liveExams: 1,
-    pendingEvaluation: 3,
-    totalQuestions: 420,
-    avgScore: "68%",
-    passRate: "72%"
-  };
+  React.useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const user = getCurrentUser();
+        const instructorId = user?.id;
+        
+        if (!instructorId) return;
+
+        const [courses, exams] = await Promise.all([
+          getInstructorCourses(instructorId).catch(() => []),
+          getInstructorExams(instructorId).catch(() => [])
+        ]);
+
+        const now = new Date();
+        const liveExams = Array.isArray(exams) ? exams.filter(e => {
+          const start = new Date(e.startTime);
+          const end = new Date(e.endTime);
+          return start <= now && now <= end;
+        }).length : 0;
+
+        setStats({
+          courses: Array.isArray(courses) ? courses.length : 0,
+          totalExams: Array.isArray(exams) ? exams.length : 0,
+          liveExams,
+          totalQuestions: 0
+        });
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+    };
+    loadStats();
+  }, []);
 
   return (
     <div className="instructor-overview">
@@ -49,7 +78,7 @@ const InstructorOverview = () => {
 
         <div className="overview-card" onClick={() => navigate("/instructor/question-bank")}>
           <h4>📚 Question Bank</h4>
-          <p>{stats.totalQuestions} Questions</p>
+          <p>{stats.totalQuestions || 0} Questions</p>
           <span>Manage Questions</span>
         </div>
 
@@ -60,13 +89,13 @@ const InstructorOverview = () => {
 
         <div className="overview-card" onClick={() => navigate("/instructor/results")}>
           <h4>🧮 Result Evaluation</h4>
-          <p>{stats.pendingEvaluation} Pending</p>
+          <p>Pending</p>
           <span>Evaluate Results</span>
         </div>
 
         <div className="overview-card" onClick={() => navigate("/instructor/analytics")}>
           <h4>📊 Performance</h4>
-          <p>Avg Score: {stats.avgScore}</p>
+          <p>Analytics</p>
           <span>View Analytics</span>
         </div>
 

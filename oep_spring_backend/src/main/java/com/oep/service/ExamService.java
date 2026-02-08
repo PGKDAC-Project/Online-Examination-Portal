@@ -28,4 +28,10 @@ public interface ExamService {
     com.oep.entities.ExamResults submitExam(Long examId, Long studentId, java.util.Map<Long, String> answers);
 
 	List<ExamQuestions> getExamQuestions(Long examId);
+	
+	com.oep.entities.Courses getCourseById(Long courseId);
+	
+	com.oep.entities.User getUserById(Long userId);
+	
+	List<com.oep.entities.ExamResults> getResultsByExam(Long examId);
 }

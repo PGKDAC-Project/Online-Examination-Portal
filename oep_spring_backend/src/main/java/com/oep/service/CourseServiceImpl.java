@@ -38,9 +38,32 @@ public class CourseServiceImpl implements CourseService {
 	}
 	
 	public CourseResponseDto mapToDto(Courses course) {
-		CourseResponseDto dto = modelMapper.map(course, CourseResponseDto.class);
+		CourseResponseDto dto = new CourseResponseDto();
+		dto.setId(course.getId());
+		dto.setCreatedOn(course.getCreatedOn());
+		dto.setLastUpdated(course.getLastUpdated());
+		dto.setCourseCode(course.getCourseCode());
+		dto.setTitle(course.getTitle());
+		dto.setDescription(course.getDescription());
+		dto.setStatus(course.getStatus().toString());
+		dto.setOutcomes(course.getOutcomes());
 		
-		// Map instructors manually since it's a list
+		// Map syllabus
+		if (course.getSyllabus() != null && !course.getSyllabus().isEmpty()) {
+			List<CourseResponseDto.SyllabusDto> syllabusDtos = course.getSyllabus().stream()
+					.map(syllabus -> {
+						CourseResponseDto.SyllabusDto sDto = new CourseResponseDto.SyllabusDto();
+						sDto.setModuleNumber(syllabus.getModuleNo());
+						sDto.setModuleTitle(syllabus.getModuleTitle());
+						sDto.setModuleDescription(syllabus.getModuleDescription());
+						sDto.setEstimatedHours(syllabus.getEstimatedHrs());
+						return sDto;
+					})
+					.collect(Collectors.toList());
+			dto.setSyllabus(syllabusDtos);
+		}
+		
+		// Map instructors
 		if (course.getInstructors() != null && !course.getInstructors().isEmpty()) {
 			List<CourseResponseDto.InstructorDto> instructorDtos = course.getInstructors().stream()
 					.map(instructor -> {
@@ -81,7 +104,6 @@ public class CourseServiceImpl implements CourseService {
 		course.setCourseCode(dto.getCourseCode());
 		course.setDescription(dto.getDescription());
 		
-		// Set status - default to ACTIVE if not provided
 		if (dto.getStatus() != null && !dto.getStatus().trim().isEmpty()) {
 			course.setStatus(Status.valueOf(dto.getStatus().toUpperCase()));
 		} else {
@@ -147,5 +169,32 @@ public class CourseServiceImpl implements CourseService {
 	public void deleteCourse(Long id) {
 		Courses course = getCourseById(id);
 		courseRepository.delete(course);
+	}
+	
+	@Override
+	public void updateCourseSyllabus(Long courseId, List<?> syllabusData) {
+		Courses course = getCourseById(courseId);
+		course.getSyllabus().clear();
+		
+		// Transform frontend format to backend format
+		for (int i = 0; i < syllabusData.size(); i++) {
+			@SuppressWarnings("unchecked")
+			var moduleMap = (java.util.Map<String, Object>) syllabusData.get(i);
+			
+			com.oep.entities.Syllabus syllabus = new com.oep.entities.Syllabus();
+			syllabus.setModuleNo((long) (i + 1));
+			syllabus.setModuleTitle((String) moduleMap.get("moduleName"));
+			
+			// Join topics array into description
+			@SuppressWarnings("unchecked")
+			var topics = (List<String>) moduleMap.get("topics");
+			if (topics != null && !topics.isEmpty()) {
+				syllabus.setModuleDescription(String.join(", ", topics));
+			}
+			
+			course.getSyllabus().add(syllabus);
+		}
+		
+		courseRepository.save(course);
 	}
 }

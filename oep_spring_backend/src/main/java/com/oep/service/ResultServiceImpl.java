@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ResultServiceImpl implements ResultService {
     private final ResultRepository resultRepository;
+    private final com.oep.repository.StudentAnswerRepository studentAnswerRepository;
+    private final com.oep.repository.ExamQuestionsRepository examQuestionsRepository;
 
     @Override
     public List<ExamResults> getAllResults() {
@@ -38,5 +40,15 @@ public class ResultServiceImpl implements ResultService {
     @Override
     public ExamResults submitResult(ExamResults result) {
         return resultRepository.save(result);
+    }
+    
+    @Override
+    public List<com.oep.entities.StudentAnswer> getStudentAnswersByResultId(Long resultId) {
+        return studentAnswerRepository.findByExamResultId(resultId);
+    }
+    
+    @Override
+    public List<com.oep.entities.ExamQuestions> getExamQuestions(Long examId) {
+        return examQuestionsRepository.findByExamQuestionIdExamIdOrderBySequenceOrderAsc(examId);
     }
 }

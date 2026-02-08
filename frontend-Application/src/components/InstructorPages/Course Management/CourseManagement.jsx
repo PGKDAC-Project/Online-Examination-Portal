@@ -80,7 +80,7 @@ function CourseManagement() {
                                             className="btn btn-outline-success btn-sm"
                                         >
                                             <FaFileUpload className="me-1" />
-                                            Upload / Update Syllabus
+                                            Manage Syllabus
                                         </Link>
 
                                         <Link

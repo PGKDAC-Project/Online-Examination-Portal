@@ -15,6 +15,6 @@ public class CreateUserDto {
 	private String role;
 	@NotBlank
 	private String status;
-	private String password; // Optional - will generate default if not provided
+	private String password; // Optional
 	private Long batchId;
 }

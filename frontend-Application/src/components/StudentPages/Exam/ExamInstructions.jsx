@@ -16,7 +16,7 @@ const ExamInstructions = () => {
       try {
         setLoading(true);
         const exams = await getAvailableExams();
-        const foundExam = exams.find(e => e.examId === examId);
+        const foundExam = exams.find(e => e.id === parseInt(examId));
 
         if (!foundExam) {
           setError("Exam not found");
@@ -54,7 +54,7 @@ const ExamInstructions = () => {
 
   return (
     <div>
-      <h2>{exam.title}</h2>
+      <h2>{exam.examTitle || exam.title}</h2>
 
       <h4>General Instructions</h4>
       <ul>
@@ -63,8 +63,10 @@ const ExamInstructions = () => {
         <li>Fullscreen mandatory during exam</li>
       </ul>
 
-      <h4>Instructor Instructions</h4>
-      <p>{exam.instructions}</p>
+      <h4>Exam Details</h4>
+      <p>Duration: {exam.duration} minutes</p>
+      <p>Total Marks: {exam.totalMarks}</p>
+      <p>Passing Marks: {exam.passingMarks}</p>
 
       <input
         type="password"

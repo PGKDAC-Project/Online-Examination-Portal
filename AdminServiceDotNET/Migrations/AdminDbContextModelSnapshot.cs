@@ -141,6 +141,10 @@ namespace AdminServiceDotNET.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("end_date");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("is_active");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("start_date");

@@ -16,7 +16,8 @@ const CreateExam = () => {
         endTime: '',
         duration: 60,
         passingMarks: 40,
-        instructions: ''
+        instructions: '',
+        examPassword: ''
     });
 
     useEffect(() => {
@@ -66,15 +67,20 @@ const CreateExam = () => {
             duration: Number(exam.duration) || 60,
             passingMarks: passingMarks,
             status: "SCHEDULED",
-            course: { id: courseId },
-            instructorDetails: { id: user.id },
-            examPassword: "" // Optional
+            courseId: Number(courseId),
+            instructorId: user.id,
+            examPassword: exam.examPassword || "" // Optional
         };
 
         try {
             const response = await createInstructorExam(payload);
-            toast.success("Exam created successfully.");
-            navigate(`/instructor/exams`); // Redirect to list or edit
+            toast.success("Exam created successfully. Now add questions!");
+            // Redirect to manage questions for the newly created exam
+            if (response && response.id) {
+                navigate(`/instructor/exams/${response.id}/questions`);
+            } else {
+                navigate(`/instructor/exams`);
+            }
         } catch (err) {
             console.error(err);
             toast.error("Failed to create exam");
@@ -138,6 +144,12 @@ const CreateExam = () => {
                         <div className="mb-3">
                             <label className="form-label">Instructions</label>
                             <textarea name="instructions" className="form-control" rows="4" onChange={handleChange} value={exam.instructions}></textarea>
+                        </div>
+
+                        <div className="mb-3">
+                            <label className="form-label">Exam Password</label>
+                            <input type="text" name="examPassword" className="form-control" placeholder="Enter exam password" onChange={handleChange} value={exam.examPassword} required />
+                            <small className="text-muted">Students will need this password to start the exam</small>
                         </div>
 
                         <div className="d-flex justify-content-end">

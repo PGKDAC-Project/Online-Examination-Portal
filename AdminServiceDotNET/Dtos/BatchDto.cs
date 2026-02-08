@@ -22,6 +22,8 @@ namespace AdminServiceDotNET.Dtos
         [JsonPropertyName("endDate")]
         public DateTime EndDate { get; set; }
         
+        public bool? IsActive { get; set; }
+        
         public string Status { get; set; }
     }
 }

@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 public class ExamViolation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "result_id", nullable = false)
+    @JoinColumn(name = "result_id", nullable = true)
     private ExamResults examResult;
 
     @Enumerated(EnumType.STRING)

@@ -25,6 +25,68 @@ namespace AdminServiceDotNET.Service
                 CreatedByEmail = a.CreatedByEmail,
                 CreatedByRole = a.CreatedByRole.ToString(),
                 TargetRole = a.TargetRole.ToString().Replace("ROLE_", ""),
+                TargetBatch = a.TargetBatch,
+                IsActive = a.IsActive,
+                ExpiresAt = a.ExpiresAt,
+                CreatedAt = a.CreatedAt
+            });
+        }
+
+        public async Task<IEnumerable<AnnouncementDto>> GetAnnouncementsByRoleAsync(string userRole)
+        {
+            // Normalize role format
+            if (!userRole.StartsWith("ROLE_"))
+                userRole = "ROLE_" + userRole.ToUpper();
+            
+            var targetRole = Enum.Parse<UserRole>(userRole, true);
+            
+            var announcements = await announcementRepository.GetAllAsync();
+            
+            Console.WriteLine($"Total announcements in DB: {announcements.Count()}");
+            Console.WriteLine($"User role: {userRole}, Parsed: {targetRole}");
+            
+            foreach (var a in announcements)
+            {
+                Console.WriteLine($"Announcement: {a.Title}, TargetRole: {a.TargetRole}, IsActive: {a.IsActive}, ExpiresAt: {a.ExpiresAt}");
+            }
+            
+            // Filter based on role
+            IEnumerable<Announcement> filtered;
+            if (targetRole == UserRole.ROLE_ADMIN)
+            {
+                // Admin sees all active announcements regardless of expiry
+                filtered = announcements.Where(a => a.IsActive);
+            }
+            else if (targetRole == UserRole.ROLE_INSTRUCTOR)
+            {
+                // Instructor sees: announcements they created OR announcements targeted to instructors
+                filtered = announcements.Where(a => 
+                    a.IsActive && 
+                    (a.CreatedByRole == UserRole.ROLE_INSTRUCTOR || a.TargetRole == UserRole.ROLE_INSTRUCTOR)
+                );
+            }
+            else
+            {
+                // Students see only non-expired announcements targeted to their role
+                filtered = announcements.Where(a => 
+                    a.IsActive && 
+                    a.TargetRole == targetRole &&
+                    (!a.ExpiresAt.HasValue || a.ExpiresAt.Value > DateTime.UtcNow)
+                );
+            }
+            
+            Console.WriteLine($"Filtered announcements count: {filtered.Count()}");
+            
+            // Sort by newest first
+            return filtered.OrderByDescending(a => a.CreatedAt).Select(a => new AnnouncementDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Description = a.Description,
+                CreatedByEmail = a.CreatedByEmail,
+                CreatedByRole = a.CreatedByRole.ToString(),
+                TargetRole = a.TargetRole.ToString().Replace("ROLE_", ""),
+                TargetBatch = a.TargetBatch,
                 IsActive = a.IsActive,
                 ExpiresAt = a.ExpiresAt,
                 CreatedAt = a.CreatedAt
@@ -97,6 +159,7 @@ namespace AdminServiceDotNET.Service
                     CreatedByEmail = userEmail,
                     CreatedByRole = creatorRole,
                     TargetRole = targetRole,
+                    TargetBatch = string.IsNullOrEmpty(dto.TargetBatch) || dto.TargetBatch.Equals("All Batches", StringComparison.OrdinalIgnoreCase) ? null : dto.TargetBatch,
                     ExpiresAt = expiresAt,
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true

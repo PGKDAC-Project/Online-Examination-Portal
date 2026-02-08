@@ -57,8 +57,8 @@ const ExamHistory = () => {
           </thead>
 
           <tbody>
-            {examHistory.map((exam) => (
-              <tr key={exam.examId}>
+            {examHistory.map((exam, index) => (
+              <tr key={exam.examId || exam.id || index}>
                 <td align="justify">{exam.examName}</td>
                 <td>{exam.courseCode}</td>
                 <td>{exam.attemptedOn}</td>

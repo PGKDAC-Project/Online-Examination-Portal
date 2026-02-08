@@ -82,4 +82,13 @@ public class Exam extends BaseEntity {
 	@Column(name = "exam_password")
 	private String examPassword;
 
+	@Column(name = "result_published", nullable = false)
+	private Boolean resultPublished = false;
+
+	@Column(name = "answer_review_allowed", nullable = false)
+	private Boolean answerReviewAllowed = false;
+
+	@Column(name = "scorecard_released", nullable = false)
+	private Boolean scorecardReleased = false;
+
 }

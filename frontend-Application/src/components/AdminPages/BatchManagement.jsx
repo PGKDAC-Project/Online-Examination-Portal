@@ -11,7 +11,8 @@ const BatchManagement = () => {
         id: null,
         batchName: "",
         startDate: "",
-        endDate: ""
+        endDate: "",
+        isActive: true
     });
     const [error, setError] = useState("");
 
@@ -34,17 +35,27 @@ const BatchManagement = () => {
     };
 
     const handleCreate = () => {
-        setFormData({ id: null, batchName: "", startDate: "", endDate: "" });
+        setFormData({ id: null, batchName: "", startDate: "", endDate: "", isActive: true });
         setError("");
         setShowModal(true);
     };
 
     const handleEdit = (batch) => {
+        // Parse dates properly - extract YYYY-MM format
+        const parseDate = (dateStr) => {
+            if (!dateStr) return "";
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}`;
+        };
+
         setFormData({
             id: batch.id,
             batchName: batch.batchName,
-            startDate: batch.startDate, // Assuming API returns YYYY-MM compatible string
-            endDate: batch.endDate
+            startDate: parseDate(batch.startDate),
+            endDate: parseDate(batch.endDate),
+            isActive: batch.isActive !== undefined ? batch.isActive : true
         });
         setError("");
         setShowModal(true);
@@ -83,8 +94,8 @@ const BatchManagement = () => {
             };
 
             if (formData.id) {
-                // Update existing batch
-                await updateBatch(formData.id, { ...payload, id: formData.id });
+                // Update existing batch - include isActive
+                await updateBatch(formData.id, { ...payload, id: formData.id, isActive: formData.isActive });
                 toast.success("Batch updated successfully");
             } else {
                 // Create new batch
@@ -100,7 +111,10 @@ const BatchManagement = () => {
 
     // Helper to determine status
     const getStatus = (batch) => {
-        if (batch.status) return batch.status;
+        // If batch is explicitly set to inactive, show Inactive
+        if (batch.isActive === false) return "Inactive";
+        
+        // Otherwise check the end date
         const today = new Date().toISOString().slice(0, 7); // YYYY-MM
         return batch.endDate >= today ? "Active" : "Completed";
     };
@@ -138,7 +152,11 @@ const BatchManagement = () => {
                                         <td>{batch.startDate ? new Date(batch.startDate).toLocaleDateString() : ""}</td>
                                         <td>{batch.endDate ? new Date(batch.endDate).toLocaleDateString() : ""}</td>
                                         <td>
-                                            <span className={`badge ${getStatus(batch) === 'Active' ? 'bg-success' : 'bg-secondary'}`}>
+                                            <span className={`badge ${
+                                                getStatus(batch) === 'Active' ? 'bg-success' : 
+                                                getStatus(batch) === 'Inactive' ? 'bg-warning' : 
+                                                'bg-secondary'
+                                            }`}>
                                                 {getStatus(batch)}
                                             </span>
                                         </td>
@@ -213,6 +231,29 @@ const BatchManagement = () => {
                                             />
                                         </div>
                                     </div>
+
+                                    {/* Show IsActive toggle only when editing and end date hasn't passed */}
+                                    {formData.id && (() => {
+                                        const endDate = new Date(`${formData.endDate}-01`);
+                                        const today = new Date();
+                                        return endDate >= today;
+                                    })() && (
+                                        <div className="mb-3">
+                                            <div className="form-check form-switch">
+                                                <input
+                                                    className="form-check-input"
+                                                    type="checkbox"
+                                                    id="isActiveSwitch"
+                                                    checked={formData.isActive}
+                                                    onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                                                />
+                                                <label className="form-check-label fw-medium" htmlFor="isActiveSwitch">
+                                                    Active Status
+                                                </label>
+                                            </div>
+                                            <small className="text-muted">Toggle to activate or deactivate this batch</small>
+                                        </div>
+                                    )}
 
                                     <div className="d-flex justify-content-end gap-2 mt-4">
                                         <button

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
     FaUsers,
     FaUserCheck,
@@ -9,7 +9,8 @@ import {
     FaClock,
     FaCheckCircle
 } from 'react-icons/fa';
-import { getLiveExamStats, getLiveStudentStatuses } from '../../../services/instructor/instructorService';
+import { getLiveExamStats, getLiveStudentStatuses, getInstructorExams } from '../../../services/instructor/instructorService';
+import { getCurrentUser } from '../../../services/auth/authService';
 import { toast } from 'react-toastify';
 
 function LiveExamMonitoring() {
@@ -18,8 +19,14 @@ function LiveExamMonitoring() {
     const [violationsCount, setViolationsCount] = useState({ tabSwitches: 0, fullscreenExits: 0 });
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [ongoingExams, setOngoingExams] = useState([]);
 
     useEffect(() => {
+        if (!examId) {
+            loadOngoingExams();
+            return;
+        }
+        
         const fetchLiveData = async () => {
             try {
                 const [statsData, studentsData] = await Promise.all([
@@ -37,9 +44,24 @@ function LiveExamMonitoring() {
         };
 
         fetchLiveData();
-        const interval = setInterval(fetchLiveData, 5000); // Poll every 5s
+        const interval = setInterval(fetchLiveData, 5000);
         return () => clearInterval(interval);
     }, [examId]);
+
+    const loadOngoingExams = async () => {
+        try {
+            const user = getCurrentUser();
+            if (user && user.id) {
+                const data = await getInstructorExams(user.id);
+                const ongoing = data.filter(exam => exam.status === 'ONGOING');
+                setOngoingExams(ongoing);
+            }
+        } catch (error) {
+            console.error("Failed to fetch ongoing exams:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const statusBadge = (status) => {
         switch (status) {
@@ -55,6 +77,42 @@ function LiveExamMonitoring() {
     };
 
     if (loading) return <div className="p-5 text-center">Loading live monitor...</div>;
+    
+    if (!examId) {
+        return (
+            <div>
+                <h2 className="mb-4">Live Exam Monitoring</h2>
+                {ongoingExams.length === 0 ? (
+                    <div className="alert alert-info">No exams are currently ongoing.</div>
+                ) : (
+                    <div className="row">
+                        {ongoingExams.map(exam => (
+                            <div key={exam.id} className="col-md-6 mb-3">
+                                <div className="card shadow-sm">
+                                    <div className="card-body">
+                                        <h5 className="card-title">{exam.examTitle}</h5>
+                                        <p className="text-muted mb-2">
+                                            Course: {exam.course?.courseCode} - {exam.course?.title}
+                                        </p>
+                                        <p className="mb-2">
+                                            <FaClock className="me-2" />
+                                            {exam.startTime} - {exam.endTime}
+                                        </p>
+                                        <Link 
+                                            to={`/instructor/exams/${exam.id}/monitor`}
+                                            className="btn btn-success"
+                                        >
+                                            Monitor Exam
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -153,6 +211,12 @@ function LiveExamMonitoring() {
             <div className="alert alert-info mt-4">
                 <strong>Security Note:</strong> Violations and auto-submissions are logged in real time.
                 Final disciplinary decisions must be taken based on backend audit logs, not UI counters.
+            </div>
+            
+            <div className="mt-3">
+                <Link to="/instructor/live-exams" className="btn btn-outline-secondary">
+                    Back to Ongoing Exams
+                </Link>
             </div>
         </div>
     );

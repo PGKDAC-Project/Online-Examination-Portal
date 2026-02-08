@@ -5,12 +5,13 @@ using AdminServiceDotNET.Dtos;
 using AdminServiceDotNET.Service;
 using AdminServiceDotNET.Models;
 using System.Text.Json;
+using System.Security.Claims;
 
 namespace AdminServiceDotNET.Controllers
 {
     [ApiController]
     [Route("admin/announcements")]
-    public class AnnouncementController : ControllerBase
+    public class AnnouncementController : BaseController
     {
         private readonly IAnnouncementService announcementService;
         private readonly IAuditLogService auditLogService;
@@ -25,13 +26,17 @@ namespace AdminServiceDotNET.Controllers
         [Authorize(Roles = "ROLE_ADMIN,ROLE_STUDENT,ROLE_INSTRUCTOR")]
         public async Task<ActionResult<IEnumerable<AnnouncementDto>>> GetAnnouncements()
         {
-            var list = await announcementService.GetAllAnnouncementsAsync();
+            // Get user role from claims
+            var userRole = User.FindFirst("user_role")?.Value 
+                        ?? User.FindFirst(ClaimTypes.Role)?.Value 
+                        ?? "ROLE_STUDENT";
+            
+            var list = await announcementService.GetAnnouncementsByRoleAsync(userRole);
             return Ok(list);
         }
 
         [HttpPost]
-        [HttpPost]
-        [Authorize(Roles = "ROLE_ADMIN")]
+        [Authorize(Roles = "ROLE_ADMIN,ROLE_INSTRUCTOR")]
         public async Task<ActionResult<ApiResponse>> CreateAnnouncement([FromBody] object requestBody)
         {
             try
@@ -51,10 +56,15 @@ namespace AdminServiceDotNET.Controllers
                     return BadRequest(new { status = "ValidationFailed", message = "Description is required" });
                 
                 await announcementService.CreateAnnouncementAsync(dto, User);
+                
+                // Get user role for audit log
+                var userRole = User.FindFirst("user_role")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
+                var auditRole = userRole?.Contains("ADMIN") == true ? UserRole.ROLE_ADMIN : UserRole.ROLE_INSTRUCTOR;
+                
                 await auditLogService.LogAsync(
                                                 ServiceName.ANNOUNCEMENT_SERVICE, 
-                                                User.Identity?.Name ?? "Admin", 
-                                                UserRole.ROLE_ADMIN, 
+                                                GetUserEmail(), 
+                                                auditRole, 
                                                 AuditAction.POST_ANNOUNCEMENT, 
                                                 $"Posted announcement {dto.Title}"
                                                 );
@@ -72,7 +82,7 @@ namespace AdminServiceDotNET.Controllers
         {
             await announcementService.DeleteAnnouncementAsync(id);
             await auditLogService.LogAsync(ServiceName.ANNOUNCEMENT_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
+                                            GetUserEmail(), 
                                             UserRole.ROLE_ADMIN, 
                                             AuditAction.DELETE_USER, 
                                             $"Deleted announcement {id}");

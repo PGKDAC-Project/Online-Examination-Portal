@@ -29,11 +29,15 @@ const ReviewAnswers = ({ questions, answers, onSubmit, onBack }) => {
                   </div>
                 </div>
                 <div className="card-body">
-                  <p className="card-text">{q.question}</p>
+                  <p className="card-text">{q.questionText || q.question}</p>
                   <p className="card-text text-muted">
                     <strong>Your Answer: </strong> 
                     {isAnswered 
-                      ? (Array.isArray(userAnswer) ? userAnswer.join(", ") : userAnswer) 
+                      ? (Array.isArray(userAnswer) 
+                          ? userAnswer.join(", ") 
+                          : typeof userAnswer === 'object' 
+                            ? JSON.stringify(userAnswer) 
+                            : userAnswer) 
                       : <span className="text-danger">Not Attempted</span>}
                   </p>
                 </div>

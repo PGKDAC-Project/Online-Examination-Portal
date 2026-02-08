@@ -25,6 +25,7 @@ namespace AdminServiceDotNET.Service
                 Description = b.Description,
                 StartDate = b.StartDate,
                 EndDate = b.EndDate,
+                IsActive = b.IsActive,
                 Status = b.EndDate >= DateTime.Now ? "Active" : "Completed"
             });
         }
@@ -39,6 +40,7 @@ namespace AdminServiceDotNET.Service
                 Description = b.Description,
                 StartDate = b.StartDate,
                 EndDate = b.EndDate,
+                IsActive = b.IsActive,
                 Status = b.EndDate >= DateTime.Now ? "Active" : "Completed"
             };
         }
@@ -64,6 +66,13 @@ namespace AdminServiceDotNET.Service
                 b.Description = dto.Description;
                 b.StartDate = dto.StartDate;
                 b.EndDate = dto.EndDate;
+                
+                // Only allow IsActive update if end date hasn't passed
+                if (dto.IsActive.HasValue && b.EndDate >= DateTime.Now)
+                {
+                    b.IsActive = dto.IsActive.Value;
+                }
+                
                 await batchRepository.UpdateAsync(b);
             }
         }

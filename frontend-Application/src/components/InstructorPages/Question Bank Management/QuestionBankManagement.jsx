@@ -1,5 +1,4 @@
-// src/components/InstructorPages/QuestionBankManagement.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     FaQuestionCircle,
@@ -9,22 +8,55 @@ import {
     FaLayerGroup,
     FaPlusCircle
 } from 'react-icons/fa';
+import { getInstructorCourses } from '../../../services/instructor/instructorService';
+import { getQuestionsByCourse } from '../../../services/instructor/questionService';
+import { getCurrentUser } from '../../../services/auth/authService';
+import { toast } from 'react-toastify';
 
 function QuestionBankManagement() {
+    const [questionBanks, setQuestionBanks] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Placeholder data — per course question bank
-    const questionBanks = [
-        {
-            courseCode: "CS204",
-            courseName: "Data Structures & Algorithms",
-            totalQuestions: 320
-        },
-        {
-            courseCode: "CS210",
-            courseName: "Database Management Systems",
-            totalQuestions: 280
+    useEffect(() => {
+        loadQuestionBanks();
+    }, []);
+
+    const loadQuestionBanks = async () => {
+        try {
+            const user = getCurrentUser();
+            if (user && user.id) {
+                const courses = await getInstructorCourses(user.id);
+                const banksWithCounts = await Promise.all(
+                    courses.map(async (course) => {
+                        try {
+                            const questions = await getQuestionsByCourse(course.id);
+                            return {
+                                courseId: course.id,
+                                courseCode: course.courseCode,
+                                courseName: course.title,
+                                totalQuestions: questions.length
+                            };
+                        } catch (error) {
+                            return {
+                                courseId: course.id,
+                                courseCode: course.courseCode,
+                                courseName: course.title,
+                                totalQuestions: 0
+                            };
+                        }
+                    })
+                );
+                setQuestionBanks(banksWithCounts);
+            }
+        } catch (error) {
+            console.error('Failed to load question banks:', error);
+            toast.error('Failed to load question banks');
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    if (loading) return <div className="p-5 text-center">Loading...</div>;
 
     return (
         <div>
@@ -38,14 +70,6 @@ function QuestionBankManagement() {
                 >
                     <FaPlusCircle className="me-2" />
                     Add New Question
-                </Link>
-
-                <Link
-                    to="/instructor/question-bank/import"
-                    className="btn btn-outline-primary"
-                >
-                    <FaFileImport className="me-2" />
-                    Import Questions (CSV / Excel)
                 </Link>
             </div>
 
@@ -74,14 +98,14 @@ function QuestionBankManagement() {
                                 <div className="d-grid gap-2">
 
                                     <Link
-                                        to={`/instructor/question-bank/${bank.courseCode}`}
+                                        to={`/instructor/question-bank/${bank.courseId}`}
                                         className="btn btn-outline-dark btn-sm"
                                     >
                                         View / Manage Questions
                                     </Link>
 
                                     <Link
-                                        to={`/instructor/question-bank/${bank.courseCode}/tags`}
+                                        to={`/instructor/question-bank/${bank.courseId}/tags`}
                                         className="btn btn-outline-warning btn-sm"
                                     >
                                         <FaTags className="me-1" />
@@ -89,7 +113,7 @@ function QuestionBankManagement() {
                                     </Link>
 
                                     <Link
-                                        to={`/instructor/question-bank/${bank.courseCode}/randomization`}
+                                        to={`/instructor/question-bank/${bank.courseId}/randomization`}
                                         className="btn btn-outline-info btn-sm"
                                     >
                                         <FaRandom className="me-1" />

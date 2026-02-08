@@ -9,8 +9,7 @@ namespace AdminServiceDotNET.Controllers
 {
     [ApiController]
     [Route("admin/batches")]
-    [Authorize(Roles = "ROLE_ADMIN")]
-    public class BatchController : ControllerBase
+    public class BatchController : BaseController
     {
         private readonly IBatchService batchService;
         private readonly IAuditLogService auditLogService;
@@ -22,6 +21,7 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ROLE_ADMIN,ROLE_INSTRUCTOR,ROLE_STUDENT")]
         public async Task<ActionResult<IEnumerable<BatchDto>>> GetBatches()
         {
             try
@@ -38,6 +38,7 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "ROLE_ADMIN,ROLE_INSTRUCTOR,ROLE_STUDENT")]
         public async Task<ActionResult<BatchDto>> GetBatch(long id)
         {
             var batch = await batchService.GetBatchByIdAsync(id);
@@ -45,11 +46,12 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ROLE_ADMIN")]
         public async Task<ActionResult<ApiResponse>> CreateBatch(BatchDto dto)
         {
             await batchService.CreateBatchAsync(dto);
             await auditLogService.LogAsync(ServiceName.BATCH_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
+                                            GetUserEmail(), 
                                             UserRole.ROLE_ADMIN, 
                                             AuditAction.CREATE_BATCH, 
                                             $"Created batch {dto.BatchName}");
@@ -57,11 +59,12 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "ROLE_ADMIN")]
         public async Task<ActionResult<ApiResponse>> UpdateBatch(long id, BatchDto dto)
         {
             await batchService.UpdateBatchAsync(id, dto);
             await auditLogService.LogAsync(ServiceName.BATCH_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
+                                            GetUserEmail(), 
                                             UserRole.ROLE_ADMIN, 
                                             AuditAction.UPDATE_USER, 
                                             $"Updated batch {id}");
@@ -69,11 +72,12 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "ROLE_ADMIN")]
         public async Task<ActionResult<ApiResponse>> DeleteBatch(long id)
         {
             await batchService.DeleteBatchAsync(id);
             await auditLogService.LogAsync(ServiceName.BATCH_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
+                                            GetUserEmail(), 
                                             UserRole.ROLE_ADMIN,
                                             AuditAction.DELETE_USER,
                                             $"Deleted batch {id}");

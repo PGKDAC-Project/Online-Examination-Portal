@@ -1,11 +1,11 @@
 // src/components/StudentPages/ExamResult.jsx
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { getDetailedResult } from "../../../services/student/studentService";
+import axiosClient from "../../../services/axios/axiosClient";
 import "./ExamResult.css";
 
 const StudentExamResult = () => {
-  const { examId } = useParams();
+  const { resultId } = useParams();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,7 +14,7 @@ const StudentExamResult = () => {
     const fetchResult = async () => {
       try {
         setLoading(true);
-        const data = await getDetailedResult(examId);
+        const data = await axiosClient.get(`/results/${resultId}`);
         setResult(data);
         setError(null);
       } catch (err) {
@@ -26,7 +26,7 @@ const StudentExamResult = () => {
     };
 
     fetchResult();
-  }, [examId]);
+  }, [resultId]);
 
   if (loading) {
     return <div className="exam-result"><h2>📊 Exam Result</h2><p>Loading result...</p></div>;

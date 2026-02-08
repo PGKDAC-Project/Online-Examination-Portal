@@ -9,7 +9,7 @@ namespace AdminServiceDotNET.Controllers
     [ApiController]
     [Route("admin/courses")]
     [Authorize(Roles = "ROLE_ADMIN")]
-    public class CourseController : ControllerBase
+    public class CourseController : BaseController
     {
         private readonly ICourseService  courseService;
         private readonly IAuditLogService  auditLogService;
@@ -33,7 +33,7 @@ namespace AdminServiceDotNET.Controllers
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             await  courseService.CreateCourseAsync(dto, token);
             await  auditLogService.LogAsync(ServiceName.COURSE_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
+                                            GetUserEmail(), 
                                             UserRole.ROLE_ADMIN, 
                                             AuditAction.CREATE_COURSE, 
                                             $"Created course {dto.Title}");
@@ -46,7 +46,7 @@ namespace AdminServiceDotNET.Controllers
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             await  courseService.UpdateCourseAsync(id, dto, token);
             await  auditLogService.LogAsync(ServiceName.COURSE_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
+                                            GetUserEmail(), 
                                             UserRole.ROLE_ADMIN, 
                                             AuditAction.UPDATE_USER, 
                                             $"Updated course {id}");
@@ -54,16 +54,21 @@ namespace AdminServiceDotNET.Controllers
         }
 
         [HttpPatch("{id}/status")]
-        public async Task<ActionResult<ApiResponse>> UpdateStatus(long id, [FromBody] string status)
+        public async Task<ActionResult<ApiResponse>> UpdateStatus(long id, [FromBody] UpdateStatusRequest request)
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            await  courseService.UpdateCourseStatusAsync(id, status, token);
+            await  courseService.UpdateCourseStatusAsync(id, request.Status, token);
              await  auditLogService.LogAsync(ServiceName.COURSE_SERVICE, 
-                                             User.Identity?.Name ?? "Admin", 
+                                             GetUserEmail(), 
                                              UserRole.ROLE_ADMIN, 
                                              AuditAction.UPDATE_USER, 
-                                             $"Updated course status {id} to {status}");
+                                             $"Updated course status {id} to {request.Status}");
             return Ok(new ApiResponse { Status = 200, Message = "Status updated successfully" });
+        }
+
+        public class UpdateStatusRequest
+        {
+            public string Status { get; set; }
         }
 
         [HttpDelete("{id}")]
@@ -72,7 +77,7 @@ namespace AdminServiceDotNET.Controllers
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             await  courseService.DeleteCourseAsync(id, token);
             await  auditLogService.LogAsync(ServiceName.COURSE_SERVICE, 
-                                            User.Identity?.Name ?? "Admin", 
+                                            GetUserEmail(), 
                                             UserRole.ROLE_ADMIN, 
                                             AuditAction.DELETE_USER, 
                                             $"Deleted course {id}");

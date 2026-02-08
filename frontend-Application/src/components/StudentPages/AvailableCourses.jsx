@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { FaBook, FaSearch, FaUserTie, FaClock, FaChevronDown, FaChevronUp, FaListUl, FaBullseye } from "react-icons/fa";
-import { getAllCourses } from "../../services/admin/courseService";
+import { getAvailableCourses, enrollCourse } from "../../services/student/studentService";
 import { toast } from "react-toastify";
 
 const AvailableCourses = () => {
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
-    const [expandedCourse, setExpandedCourse] = useState(null); // stores courseId
+    const [expandedCourse, setExpandedCourse] = useState(null);
+    const [enrolling, setEnrolling] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -15,13 +16,27 @@ const AvailableCourses = () => {
 
     const loadData = async () => {
         try {
-            const data = await getAllCourses();
-            setCourses(Array.isArray(data) ? data.filter(c => c.status === "Active") : []);
+            const data = await getAvailableCourses();
+            setCourses(Array.isArray(data) ? data.filter(c => c.status?.toUpperCase() === "ACTIVE") : []);
         } catch (err) {
             console.error(err);
             toast.error("Failed to load courses");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleEnroll = async (courseId) => {
+        try {
+            setEnrolling(courseId);
+            await enrollCourse(courseId);
+            toast.success('Successfully enrolled in course!');
+            loadData();
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to enroll in course');
+        } finally {
+            setEnrolling(null);
         }
     };
 
@@ -85,27 +100,38 @@ const AvailableCourses = () => {
                                     {expandedCourse === course.id && (
                                         <div className="mb-3 bg-light p-3 rounded small animate__animated animate__fadeIn">
                                             <h6 className="fw-bold text-primary mb-2"><FaListUl className="me-2" /> Syllabus</h6>
-                                            <ul className="mb-3 ps-3">
-                                                {(course.syllabus && course.syllabus.length > 0) ? (
-                                                    course.syllabus.map((item, idx) => (
-                                                        <li key={idx} className="mb-1">{item.moduleTitle || item}</li>
-                                                    ))
-                                                ) : <li>No syllabus details available.</li>}
-                                            </ul>
+                                            {(course.syllabus && course.syllabus.length > 0) ? (
+                                                <div className="mb-3">
+                                                    {course.syllabus.map((item, idx) => (
+                                                        <div key={idx} className="mb-2 pb-2 border-bottom">
+                                                            <div className="fw-semibold">{item.moduleTitle || item}</div>
+                                                            {item.estimatedHrs && (
+                                                                <div className="text-muted small">
+                                                                    <FaClock className="me-1" />{item.estimatedHrs} hours
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : <p className="text-muted">No syllabus details available.</p>}
 
                                             <h6 className="fw-bold text-success mb-2"><FaBullseye className="me-2" /> Learning Outcomes</h6>
-                                            <ul className="ps-3 mb-0">
-                                                {(course.outcomes && course.outcomes.length > 0) ? (
-                                                    course.outcomes.map((out, idx) => (
+                                            {(course.outcomes && course.outcomes.length > 0) ? (
+                                                <ul className="ps-3 mb-0">
+                                                    {course.outcomes.map((out, idx) => (
                                                         <li key={idx} className="mb-1">{out}</li>
-                                                    ))
-                                                ) : <li>No outcomes listed.</li>}
-                                            </ul>
+                                                    ))}
+                                                </ul>
+                                            ) : <p className="text-muted mb-0">No outcomes listed.</p>}
                                         </div>
                                     )}
 
-                                    <button className="btn btn-primary-custom w-100">
-                                        Enroll Now
+                                    <button 
+                                        className="btn btn-primary-custom w-100" 
+                                        onClick={() => handleEnroll(course.id)}
+                                        disabled={enrolling === course.id}
+                                    >
+                                        {enrolling === course.id ? 'Enrolling...' : 'Enroll Now'}
                                     </button>
                                 </div>
                             </div>

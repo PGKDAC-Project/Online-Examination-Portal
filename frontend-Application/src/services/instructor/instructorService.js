@@ -47,3 +47,11 @@ export const removeQuestionFromExam = async (examId, questionId) => {
 export const getExamQuestions = async (examId) => {
   return await axiosClient.get(`/instructor/exams/${examId}/questions`);
 };
+
+export const getInstructorExam = async (examId) => {
+  return await axiosClient.get(`/exams/${examId}`);
+};
+
+export const updateInstructorExam = async (examId, examData) => {
+  return await axiosClient.put(`/instructor/exams/${examId}`, examData);
+};

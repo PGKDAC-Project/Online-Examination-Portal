@@ -167,3 +167,69 @@ body.dark .exam-footer button {
 body.dark .exam-footer button:hover {
   background: rgba(148, 163, 184, 0.22);
 }
+
+.matching-question {
+  margin-top: 20px;
+}
+
+.matching-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.matching-row .left-item {
+  flex: 1;
+  font-weight: 500;
+}
+
+.matching-row select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+
+body.dark .matching-row {
+  background: #1e293b;
+}
+
+body.dark .matching-row select {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+.exam-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.exam-option:hover {
+  background: #e2e8f0;
+}
+
+.exam-option input {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+body.dark .exam-option {
+  background: #1e293b;
+}
+
+body.dark .exam-option:hover {
+  background: #334155;
+}

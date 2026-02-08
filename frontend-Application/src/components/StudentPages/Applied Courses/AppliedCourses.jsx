@@ -1,45 +1,45 @@
 import AppliedCourseCard from "./AppliedCourseCard";
-import "./AppliedCourses.css"
-import { useMemo } from "react";
-const courses = [
-  {
-    courseName: "Data Structures",
-    courseCode: "CS101",
-    instructor: "Mr. Devendra Dhande",
-    status: "Active",
-    syllabus: [
-      {
-        moduleName: "Arrays & Strings",
-        topics: ["1D Arrays", "2D Arrays", "Strings"]
-      },
-      {
-        moduleName: "Linked Lists",
-        topics: ["Singly", "Doubly", "Circular"]
-      }
-    ]
-  }
-];
+import "./AppliedCourses.css";
+import { useState, useEffect } from "react";
+import { toast } from 'react-toastify';
+import axiosClient from '../../../services/axios/axiosClient';
+import { getCurrentUser } from '../../../services/auth/authService';
 
 const AppliedCourses = () => {
-  const hydratedCourses = useMemo(() => {
-    return courses.map((c) => {
-      const stored = localStorage.getItem(`syllabus:${c.courseCode}`);
-      if (!stored) return c;
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
       try {
-        const parsed = JSON.parse(stored);
-        if (!Array.isArray(parsed)) return c;
-        return { ...c, syllabus: parsed };
-      } catch {
-        return c;
+        const user = getCurrentUser();
+        if (!user?.id) {
+          toast.error('User not logged in');
+          return;
+        }
+        const data = await axiosClient.get(`/student/courses/${user.id}`);
+        setCourses(data || []);
+      } catch (err) {
+        console.error('Failed to fetch courses:', err);
+        toast.error('Failed to load enrolled courses');
+      } finally {
+        setLoading(false);
       }
-    });
+    };
+    fetchCourses();
   }, []);
+
+  if (loading) return <div>Loading courses...</div>;
 
   return (
     <div className="course-grid">
-      {hydratedCourses.map((course, index) => (
-        <AppliedCourseCard key={index} course={course} />
-      ))}
+      {courses.length === 0 ? (
+        <div className="alert alert-info">No enrolled courses found</div>
+      ) : (
+        courses.map((course) => (
+          <AppliedCourseCard key={course.id || course.courseId} course={course} />
+        ))
+      )}
     </div>
   );
 };

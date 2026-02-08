@@ -36,6 +36,10 @@ namespace AdminServiceDotNET.Models
         [Column("target_role")]
         public UserRole TargetRole { get; set; }
 
+        [Column("target_batch")]
+        [MaxLength(100)]
+        public string? TargetBatch { get; set; }
+
         [Column("is_active")]
         public bool IsActive { get; set; } = true;
 
