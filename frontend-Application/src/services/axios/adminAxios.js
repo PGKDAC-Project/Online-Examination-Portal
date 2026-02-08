@@ -2,7 +2,8 @@ import axios from "axios";
 
 // Create Axios Instance for .NET Admin Service
 const adminAxios = axios.create({
-    baseURL: import.meta.env.VITE_ADMIN_API_BASE_URL || "http://127.0.0.1:7097", // .NET Admin Service Port
+    // Fallback to local 7097 if environment variable is not set
+    baseURL: import.meta.env.VITE_ADMIN_API_BASE_URL || "http://localhost:7097",
     timeout: 30000,
     headers: {
         "Content-Type": "application/json",

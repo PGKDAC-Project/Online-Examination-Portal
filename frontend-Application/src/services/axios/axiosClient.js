@@ -2,7 +2,8 @@ import axios from "axios";
 
 // Create Axios Instance
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8080/oep",
+  // Fallback to local 8080 if environment variable is not set
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/oep",
   timeout: 30000,
   headers: {
     "Content-Type": "application/json",

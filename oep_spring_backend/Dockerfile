@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:21-jdk-jammy
 
 WORKDIR /app
 
@@ -9,6 +9,7 @@ COPY .mvn .mvn
 COPY pom.xml .
 
 # Download dependencies
+RUN chmod +x mvnw
 RUN ./mvnw dependency:go-offline -B
 
 # Copy source code
@@ -21,4 +22,4 @@ RUN ./mvnw clean package -DskipTests
 EXPOSE 8080
 
 # Run application
-CMD ["java", "-jar", "target/exam_portal_backend-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "target/oep-spring-backend.jar"]
