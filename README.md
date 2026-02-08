@@ -266,20 +266,11 @@ cd Online-Examination-Portal
 
 #### 2. Database Setup
 
-Create two MySQL databases:
+Create two MySQL databases (using root user):
 
 ```sql
 CREATE DATABASE student_instructor_service_db;
 CREATE DATABASE admin_service_db;
-```
-
-Create a MySQL user (or use existing):
-
-```sql
-CREATE USER 'kd2-harsh-92448'@'localhost' IDENTIFIED BY 'manager';
-GRANT ALL PRIVILEGES ON student_instructor_service_db.* TO 'kd2-harsh-92448'@'localhost';
-GRANT ALL PRIVILEGES ON admin_service_db.* TO 'kd2-harsh-92448'@'localhost';
-FLUSH PRIVILEGES;
 ```
 
 #### 3. Backend Setup - Spring Boot
