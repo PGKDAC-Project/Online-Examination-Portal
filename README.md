@@ -616,3 +616,6 @@ For issues, questions, or contributions, please open an issue in the GitHub repo
 ---
 
 **Built with ❤️ for seamless online examination management**
+
+
+# Deployment trigger
