@@ -44,6 +44,7 @@ jobs:
     - name: Test .NET Admin Service
       run: |
         cd AdminServiceDotNET
+        dotnet restore
         dotnet build --no-restore
     
     - name: Test React Frontend
