@@ -1,0 +1,29 @@
+[Unit]
+Description=Online Examination Portal - Spring Boot Backend
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/online-exam-portal/oep_spring_backend
+ExecStart=/usr/bin/java -jar target/exam_portal_backend-0.0.1-SNAPSHOT.jar
+Restart=on-failure
+RestartSec=10
+
+# Environment Variables
+Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="DB_USERNAME=oep_user"
+Environment="DB_PASSWORD=SecurePassword123!"
+Environment="JWT_SECRET=617b7c292a0698a897e6ff73324285be2ca049857c8802e26a4cce2214d899c4"
+Environment="MAIL_USERNAME=your-email@gmail.com"
+Environment="MAIL_PASSWORD=your-app-password"
+Environment="FRONTEND_RESET_URL=http://your-ec2-ip/auth/reset-password"
+Environment="ADMIN_SERVICE_URL=http://localhost:7097"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=oep-backend
+
+[Install]
+WantedBy=multi-user.target

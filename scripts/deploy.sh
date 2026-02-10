@@ -25,19 +25,21 @@ print_error() {
 
 # Set environment variables
 export DB_USERNAME="oep_user"
-export DB_PASSWORD="SecurePassword123!"
+export DB_PASSWORD="${DB_PASSWORD:-SecurePassword123!}"
 export DB_HOST="localhost"
 export DB_NAME_MAIN="student_instructor_service_db"
 export DB_NAME_ADMIN="admin_service_db"
-export JWT_SECRET="617b7c292a0698a897e6ff73324285be2ca049857c8802e26a4cce2214d899c4"
+export JWT_SECRET="${JWT_SECRET:-617b7c292a0698a897e6ff73324285be2ca049857c8802e26a4cce2214d899c4}"
 export SPRING_BACKEND_URL="http://localhost:9090/oep"
 export ADMIN_SERVICE_URL="http://localhost:7097"
 export FRONTEND_URL="http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || echo 'localhost')"
 export FRONTEND_RESET_URL="${FRONTEND_URL}/auth/reset-password"
 
-# Get email credentials from environment (set by systemd or GitHub Actions)
+# Get email credentials from environment (set by GitHub Actions)
 if [ -z "$MAIL_USERNAME" ] || [ -z "$MAIL_PASSWORD" ]; then
-    print_warning "Email credentials not set in environment. Checking systemd service..."
+    print_warning "Email credentials not set. Email functionality will be disabled."
+else
+    print_status "Email credentials configured"
 fi
 
 print_status "Environment variables configured"
@@ -70,6 +72,38 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Update systemd service file for Spring Boot
+print_status "Configuring Spring Boot service..."
+sudo tee /etc/systemd/system/oep-backend.service > /dev/null <<EOF
+[Unit]
+Description=Online Examination Portal - Spring Boot Backend
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/online-exam-portal/oep_spring_backend
+ExecStart=/usr/bin/java -jar target/exam_portal_backend-0.0.1-SNAPSHOT.jar --server.port=9090
+Restart=on-failure
+RestartSec=10
+
+Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="DB_USERNAME=${DB_USERNAME}"
+Environment="DB_PASSWORD=${DB_PASSWORD}"
+Environment="JWT_SECRET=${JWT_SECRET}"
+Environment="MAIL_USERNAME=${MAIL_USERNAME}"
+Environment="MAIL_PASSWORD=${MAIL_PASSWORD}"
+Environment="FRONTEND_RESET_URL=${FRONTEND_RESET_URL}"
+Environment="ADMIN_SERVICE_URL=${ADMIN_SERVICE_URL}"
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=oep-backend
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 # Build .NET Admin Service
 print_status "Building .NET Admin Service..."
 cd /home/ubuntu/online-exam-portal/AdminServiceDotNET
@@ -79,6 +113,33 @@ if [ $? -ne 0 ]; then
     print_error ".NET build failed"
     exit 1
 fi
+
+# Update systemd service file for Admin Service
+print_status "Configuring Admin Service..."
+sudo tee /etc/systemd/system/oep-admin.service > /dev/null <<EOF
+[Unit]
+Description=Online Examination Portal - Admin Service (.NET)
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/online-exam-portal/AdminServiceDotNET/publish
+ExecStart=/usr/bin/dotnet AdminServiceDotNET.dll
+Restart=on-failure
+RestartSec=10
+
+Environment="ASPNETCORE_ENVIRONMENT=Production"
+Environment="DB_PASSWORD=${DB_PASSWORD}"
+Environment="JWT_SECRET=${JWT_SECRET}"
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=oep-admin
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 # Build React Frontend
 print_status "Building React Frontend..."
@@ -99,7 +160,9 @@ sudo cp -r dist/* /var/www/html/oep/
 sudo chown -R www-data:www-data /var/www/html/oep
 
 # Start services
-print_status "Starting services..."
+print_status "Reloading systemd and starting services..."
+sudo systemctl daemon-reload
+sudo systemctl enable oep-backend oep-admin
 sudo systemctl start oep-backend
 sudo systemctl start oep-admin
 

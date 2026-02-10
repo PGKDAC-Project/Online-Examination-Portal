@@ -1,0 +1,24 @@
+[Unit]
+Description=Online Examination Portal - Admin Service (.NET)
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/online-exam-portal/AdminServiceDotNET/publish
+ExecStart=/usr/bin/dotnet AdminServiceDotNET.dll
+Restart=on-failure
+RestartSec=10
+
+# Environment Variables
+Environment="ASPNETCORE_ENVIRONMENT=Production"
+Environment="DB_PASSWORD=SecurePassword123!"
+Environment="JWT_SECRET=617b7c292a0698a897e6ff73324285be2ca049857c8802e26a4cce2214d899c4"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=oep-admin
+
+[Install]
+WantedBy=multi-user.target
